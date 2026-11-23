@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n/context";
 import type { FleetCompositionResult, ProjectAssumptions, ProjectResult, ScenarioResult } from "@/lib/types";
 import { Loader2 } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
 const DEFAULTS: ProjectAssumptions = {
   availableCapital: 370000,
@@ -28,8 +28,10 @@ const DEFAULTS: ProjectAssumptions = {
   setupCosts: 15000,
 };
 
+type FieldKey = keyof ProjectAssumptions;
+
 export default function FinancePage() {
-  const { t } = useI18n();
+  const { t, formatMoney, locale } = useI18n();
   const [form, setForm] = useState<ProjectAssumptions>(DEFAULTS);
   const [result, setResult] = useState<ProjectResult | null>(null);
   const [scenarios, setScenarios] = useState<ScenarioResult[]>([]);
@@ -37,7 +39,31 @@ export default function FinancePage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function num(name: keyof ProjectAssumptions, value: string) {
+  const fields = useMemo(
+    () =>
+      [
+        ["availableCapital", t.finance.availableCapital],
+        ["minReserve", t.finance.minReserve],
+        ["vehicleCount", t.finance.vehicleCount],
+        ["purchasePricePerVehicle", t.finance.purchasePrice],
+        ["downPaymentPerVehicle", t.finance.downPayment],
+        ["annualInterestRate", t.finance.annualRate],
+        ["financeMonths", t.finance.financeMonths],
+        ["insurancePerVehicleMonthly", t.finance.insuranceMonthly],
+        ["rentLocal", t.finance.rentLocal],
+        ["advertising", t.finance.advertising],
+        ["salaries", t.finance.salaries],
+        ["otherFixed", t.finance.otherFixed],
+        ["maintenancePerDay", t.finance.maintenancePerDay],
+        ["otherVariablePerDay", t.finance.otherVariablePerDay],
+        ["averageDailyRate", t.finance.averageDailyRate],
+        ["occupancyRate", t.finance.occupancyRate],
+        ["setupCosts", t.finance.setupCosts],
+      ] as const satisfies ReadonlyArray<readonly [FieldKey, string]>,
+    [t],
+  );
+
+  function num(name: FieldKey, value: string) {
     setForm((f) => ({ ...f, [name]: Number(value) }));
   }
 
@@ -46,10 +72,7 @@ export default function FinancePage() {
     setLoading(true);
     setError("");
     try {
-      const [proj, scen] = await Promise.all([
-        api.simulateFinance(form),
-        api.simulateScenarios(form),
-      ]);
+      const [proj, scen] = await Promise.all([api.simulateFinance(form), api.simulateScenarios(form)]);
       setResult(proj);
       setScenarios(scen);
     } catch (err) {
@@ -123,27 +146,7 @@ export default function FinancePage() {
       {error && <AlertBox>{error}</AlertBox>}
 
       <form onSubmit={runSimulate} className="card mb-6 grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
-        {(
-          [
-            ["availableCapital", "Capital disponible"],
-            ["minReserve", "Réserve minimale"],
-            ["vehicleCount", "Nb véhicules"],
-            ["purchasePricePerVehicle", "Prix d’achat / véhicule"],
-            ["downPaymentPerVehicle", "Apport / véhicule"],
-            ["annualInterestRate", "Taux annuel %"],
-            ["financeMonths", "Durée crédit (mois)"],
-            ["insurancePerVehicleMonthly", "Assurance / mois / véhicule"],
-            ["rentLocal", "Loyer local"],
-            ["advertising", "Publicité"],
-            ["salaries", "Salaires"],
-            ["otherFixed", "Autres fixes"],
-            ["maintenancePerDay", "Entretien / jour loc."],
-            ["otherVariablePerDay", "Autres variables / jour"],
-            ["averageDailyRate", "Prix moyen / jour"],
-            ["occupancyRate", "Occupation %"],
-            ["setupCosts", "Frais de démarrage"],
-          ] as const
-        ).map(([key, label]) => (
+        {fields.map(([key, label]) => (
           <label key={key} className="block">
             <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{label}</span>
             <input
@@ -158,49 +161,58 @@ export default function FinancePage() {
         <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4">
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Simuler le projet
+            {t.finance.simulate}
           </button>
           <button type="button" className="btn-ghost" disabled={loading} onClick={runFleetCompare}>
-            Comparer compositions flotte
+            {t.finance.compareFleet}
           </button>
         </div>
       </form>
 
       {result && (
         <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Metric label="CA mensuel" value={`${Number(result.monthlyRevenue).toLocaleString("fr-MA")} MAD`} />
-          <Metric label="Bénéfice mensuel" value={`${Number(result.monthlyProfit).toLocaleString("fr-MA")} MAD`} />
-          <Metric label="ROI annuel" value={`${result.roiAnnualPct} %`} />
-          <Metric label="Payback" value={result.paybackMonths < 0 ? "N/A" : `${result.paybackMonths} mois`} />
-          <Metric label="Mensualité crédit" value={`${Number(result.monthlyInstallment).toLocaleString("fr-MA")} MAD`} />
-          <Metric label="Trésorerie après setup" value={`${Number(result.treasuryAfterSetup).toLocaleString("fr-MA")} MAD`} />
-          <Metric label="Point mort (jours)" value={String(result.breakEvenRentalDays)} />
-          <Metric label="Occupation mini" value={`${result.breakEvenOccupancyPct} %`} />
+          <Metric label={t.finance.monthlyRevenue} value={formatMoney(result.monthlyRevenue)} />
+          <Metric label={t.finance.monthlyProfit} value={formatMoney(result.monthlyProfit)} />
+          <Metric label={t.finance.roiAnnual} value={`${result.roiAnnualPct} %`} />
+          <Metric
+            label={t.finance.payback}
+            value={result.paybackMonths < 0 ? "N/A" : `${result.paybackMonths} ${t.finance.months}`}
+          />
+          <Metric label={t.finance.monthlyInstallment} value={formatMoney(result.monthlyInstallment)} />
+          <Metric label={t.finance.treasuryAfterSetup} value={formatMoney(result.treasuryAfterSetup)} />
+          <Metric label={t.finance.breakEvenDays} value={String(result.breakEvenRentalDays)} />
+          <Metric label={t.finance.minOccupancy} value={`${result.breakEvenOccupancyPct} %`} />
         </div>
       )}
 
       {!!scenarios.length && (
         <div className="card mb-6 overflow-hidden">
-          <div className="border-b border-[#e5e7eb] px-5 py-4 font-display text-lg font-bold">Scénarios d’occupation</div>
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <div className="border-b border-[#e5e7eb] px-5 py-4 font-display text-lg font-bold">
+            {t.finance.scenariosTitle}
+          </div>
+          <table className="w-full min-w-[720px] text-start text-sm">
             <thead className="bg-gray-50 text-xs uppercase text-gray-500">
               <tr>
-                <th className="px-4 py-3">Scénario</th>
-                <th className="px-4 py-3">CA</th>
-                <th className="px-4 py-3">Coûts</th>
-                <th className="px-4 py-3">Profit</th>
-                <th className="px-4 py-3">Trésorerie</th>
-                <th className="px-4 py-3">Risque</th>
+                <th className="px-4 py-3">{t.finance.scenario}</th>
+                <th className="px-4 py-3">{t.finance.revenue}</th>
+                <th className="px-4 py-3">{t.finance.costs}</th>
+                <th className="px-4 py-3">{t.finance.profit}</th>
+                <th className="px-4 py-3">{t.finance.treasury}</th>
+                <th className="px-4 py-3">{t.finance.risk}</th>
               </tr>
             </thead>
             <tbody>
               {scenarios.map((s) => (
                 <tr key={s.label} className="border-t border-[#e5e7eb]">
                   <td className="px-4 py-3 font-semibold">{s.label}</td>
-                  <td className="px-4 py-3">{Number(s.revenue).toLocaleString("fr-MA")}</td>
-                  <td className="px-4 py-3">{Number(s.costs).toLocaleString("fr-MA")}</td>
-                  <td className="px-4 py-3 font-bold text-[#e10600]">{Number(s.profit).toLocaleString("fr-MA")}</td>
-                  <td className="px-4 py-3">{Number(s.treasuryProjection).toLocaleString("fr-MA")}</td>
+                  <td className="px-4 py-3">{Number(s.revenue).toLocaleString(locale === "ar" ? "ar-MA" : "fr-MA")}</td>
+                  <td className="px-4 py-3">{Number(s.costs).toLocaleString(locale === "ar" ? "ar-MA" : "fr-MA")}</td>
+                  <td className="px-4 py-3 font-bold text-[#e10600]">
+                    {Number(s.profit).toLocaleString(locale === "ar" ? "ar-MA" : "fr-MA")}
+                  </td>
+                  <td className="px-4 py-3">
+                    {Number(s.treasuryProjection).toLocaleString(locale === "ar" ? "ar-MA" : "fr-MA")}
+                  </td>
                   <td className="px-4 py-3 text-xs font-bold">{s.risk}</td>
                 </tr>
               ))}
@@ -212,18 +224,18 @@ export default function FinancePage() {
       {!!compositions.length && (
         <div className="card overflow-hidden">
           <div className="border-b border-[#e5e7eb] px-5 py-4 font-display text-lg font-bold">
-            Comparaison compositions de flotte
+            {t.finance.compositionsTitle}
           </div>
-          <table className="w-full min-w-[980px] text-left text-sm">
+          <table className="w-full min-w-[980px] text-start text-sm">
             <thead className="bg-gray-50 text-xs uppercase text-gray-500">
               <tr>
-                <th className="px-4 py-3">Composition</th>
-                <th className="px-4 py-3">Apport</th>
-                <th className="px-4 py-3">Mensualité</th>
-                <th className="px-4 py-3">Occ. requise</th>
-                <th className="px-4 py-3">Profit / mois</th>
-                <th className="px-4 py-3">Cash restant</th>
-                <th className="px-4 py-3">Risque</th>
+                <th className="px-4 py-3">{t.finance.composition}</th>
+                <th className="px-4 py-3">{t.finance.totalDown}</th>
+                <th className="px-4 py-3">{t.finance.installment}</th>
+                <th className="px-4 py-3">{t.finance.requiredOcc}</th>
+                <th className="px-4 py-3">{t.finance.profitMonth}</th>
+                <th className="px-4 py-3">{t.finance.remainingCash}</th>
+                <th className="px-4 py-3">{t.finance.risk}</th>
               </tr>
             </thead>
             <tbody>
@@ -231,13 +243,21 @@ export default function FinancePage() {
                 <tr key={c.name} className="border-t border-[#e5e7eb]">
                   <td className="px-4 py-3 font-semibold">
                     {c.name}
-                    <div className="text-xs text-gray-500">{c.vehicleCount} véhicules · {c.avgDailyRate} MAD/j</div>
+                    <div className="text-xs text-gray-500">
+                      {c.vehicleCount} {t.finance.vehiclesCount} · {c.avgDailyRate} {t.finance.perDay}
+                    </div>
                   </td>
-                  <td className="px-4 py-3">{Number(c.totalDown).toLocaleString("fr-MA")}</td>
-                  <td className="px-4 py-3">{Number(c.monthlyInstallment).toLocaleString("fr-MA")}</td>
+                  <td className="px-4 py-3">{Number(c.totalDown).toLocaleString(locale === "ar" ? "ar-MA" : "fr-MA")}</td>
+                  <td className="px-4 py-3">
+                    {Number(c.monthlyInstallment).toLocaleString(locale === "ar" ? "ar-MA" : "fr-MA")}
+                  </td>
                   <td className="px-4 py-3">{c.requiredOccupancyPct} %</td>
-                  <td className="px-4 py-3 font-bold text-[#e10600]">{Number(c.monthlyProfit).toLocaleString("fr-MA")}</td>
-                  <td className="px-4 py-3">{Number(c.remainingCash).toLocaleString("fr-MA")}</td>
+                  <td className="px-4 py-3 font-bold text-[#e10600]">
+                    {Number(c.monthlyProfit).toLocaleString(locale === "ar" ? "ar-MA" : "fr-MA")}
+                  </td>
+                  <td className="px-4 py-3">
+                    {Number(c.remainingCash).toLocaleString(locale === "ar" ? "ar-MA" : "fr-MA")}
+                  </td>
                   <td className="px-4 py-3 text-xs font-bold">{c.risk}</td>
                 </tr>
               ))}

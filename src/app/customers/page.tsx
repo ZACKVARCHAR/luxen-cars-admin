@@ -94,7 +94,7 @@ export default function CustomersPage() {
         actions={
           <button type="button" className="btn-primary" onClick={() => setOpen((v) => !v)}>
             {open ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            {open ? t.close : t.add}
+            {open ? t.form.close : t.form.newCustomer}
           </button>
         }
       />
@@ -103,7 +103,7 @@ export default function CustomersPage() {
       {open && (
         <form onSubmit={onCreate} className="card mb-6 space-y-4 p-5">
           <div>
-            <h2 className="font-display text-lg font-bold">Nouvelle fiche client</h2>
+            <h2 className="font-display text-lg font-bold">{t.customers.newProfileTitle}</h2>
             <p className="mt-1 text-sm text-gray-500">
               Identité, contact et provenance — indispensables pour relier paiements et locations.
             </p>
@@ -127,7 +127,7 @@ export default function CustomersPage() {
             <Field name="idDocument" label="CIN / passeport" placeholder="AB123456" />
             <Field name="driverLicense" label="N° permis" placeholder="Permis B…" />
             <label className="block sm:col-span-2 lg:col-span-3">
-              <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Notes</span>
+              <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">{t.form.notes}</span>
               <input className="field" name="notes" placeholder="Préférences, historique litiges…" />
             </label>
             <label className="flex items-center gap-2 text-sm font-semibold">
@@ -137,7 +137,7 @@ export default function CustomersPage() {
           </div>
           <button type="submit" className="btn-primary" disabled={saving}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            Enregistrer le client
+            {t.customers.saveClient}
           </button>
         </form>
       )}
@@ -153,14 +153,14 @@ export default function CustomersPage() {
 
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <table className="w-full min-w-[720px] text-start text-sm">
             <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
               <tr>
-                <th className="px-4 py-3">Client</th>
-                <th className="px-4 py-3">Contact</th>
-                <th className="px-4 py-3">Nationalité</th>
-                <th className="px-4 py-3">Source</th>
-                <th className="px-4 py-3">Fiche</th>
+                <th className="px-4 py-3">{t.form.client}</th>
+                <th className="px-4 py-3">{t.customers.contact}</th>
+                <th className="px-4 py-3">{t.customers.nationality}</th>
+                <th className="px-4 py-3">{t.customers.source}</th>
+                <th className="px-4 py-3">{t.customers.profile}</th>
               </tr>
             </thead>
             <tbody>

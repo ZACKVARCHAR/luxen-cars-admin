@@ -10,7 +10,7 @@ import { Loader2, Plus } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
 export default function MaintenancePage() {
-  const { t } = useI18n();
+  const { t, formatMoney } = useI18n();
   const [rows, setRows] = useState<MaintenanceOrder[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [error, setError] = useState("");
@@ -70,7 +70,7 @@ export default function MaintenancePage() {
         ]}
         actions={
           <button type="button" className="btn-primary" onClick={() => setOpen((v) => !v)}>
-            <Plus className="h-4 w-4" /> {t.new}
+            <Plus className="h-4 w-4" /> {t.form.newMaintenance}
           </button>
         }
       />
@@ -78,7 +78,7 @@ export default function MaintenancePage() {
       {open && (
         <form onSubmit={onCreate} className="card mb-5 grid gap-3 p-5 sm:grid-cols-3">
           <label className="block sm:col-span-2">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Véhicule</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.vehicle}</span>
             <select className="field" name="vehicleId" required>
               {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>{v.brand} {v.model} · {v.registration}</option>
@@ -86,7 +86,7 @@ export default function MaintenancePage() {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Type</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.type}</span>
             <select className="field" name="kind" defaultValue="OIL_CHANGE">
               <option value="OIL_CHANGE">Vidange</option>
               <option value="FILTERS">Filtres</option>
@@ -99,45 +99,45 @@ export default function MaintenancePage() {
             </select>
           </label>
           <label className="block sm:col-span-2">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Titre</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.title}</span>
             <input className="field" name="title" required placeholder="Vidange 15 000 km" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Coût estimé</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.estimatedCost}</span>
             <input className="field" name="cost" type="number" step="0.01" defaultValue={0} />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Échéance</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.dueDate}</span>
             <input className="field" name="dueDate" type="date" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Km cible</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.targetKm}</span>
             <input className="field" name="dueMileage" type="number" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Garage</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.garage}</span>
             <input className="field" name="vendor" />
           </label>
           <label className="flex items-center gap-2 pt-6 text-sm font-semibold">
-            <input type="checkbox" name="immobilize" /> Immobiliser le véhicule
+            <input type="checkbox" name="immobilize" /> {t.form.immobilize}
           </label>
           <div className="sm:col-span-3">
             <button className="btn-primary" disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Créer
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} {t.create}
             </button>
           </div>
         </form>
       )}
       <div className="card overflow-hidden">
-        <table className="w-full min-w-[860px] text-left text-sm">
+        <table className="w-full min-w-[860px] text-start text-sm">
           <thead className="bg-gray-50 text-xs uppercase text-gray-500">
             <tr>
-              <th className="px-4 py-3">Ordre</th>
-              <th className="px-4 py-3">Type</th>
-              <th className="px-4 py-3">Échéance</th>
-              <th className="px-4 py-3">Coût</th>
-              <th className="px-4 py-3">Statut</th>
-              <th className="px-4 py-3">Action</th>
+              <th className="px-4 py-3">{t.maintenance.order}</th>
+              <th className="px-4 py-3">{t.form.type}</th>
+              <th className="px-4 py-3">{t.form.dueDate}</th>
+              <th className="px-4 py-3">{t.form.amount}</th>
+              <th className="px-4 py-3">{t.form.status}</th>
+              <th className="px-4 py-3">{t.actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -146,7 +146,7 @@ export default function MaintenancePage() {
                 <td className="px-4 py-3 font-semibold">{m.title}</td>
                 <td className="px-4 py-3 text-xs">{m.kind}</td>
                 <td className="px-4 py-3 text-xs">{m.dueDate || "—"}{m.dueMileage ? ` / ${m.dueMileage} km` : ""}</td>
-                <td className="px-4 py-3 font-bold text-[#e10600]">{Number(m.cost).toLocaleString("fr-MA")} MAD</td>
+                <td className="px-4 py-3 font-bold text-[#e10600]">{formatMoney(m.cost)}</td>
                 <td className="px-4 py-3"><StatusBadge value={m.status} /></td>
                 <td className="px-4 py-3">
                   {m.status !== "DONE" && (
@@ -166,7 +166,7 @@ export default function MaintenancePage() {
                         }
                       }}
                     >
-                      Terminer
+                      {t.maintenance.complete}
                     </button>
                   )}
                 </td>

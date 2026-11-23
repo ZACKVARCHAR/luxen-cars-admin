@@ -161,10 +161,10 @@ export default function VehiclesPage() {
       {error && <AlertBox>{error}</AlertBox>}
 
       <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard icon={CarFront} label="Véhicules au total" value={stats.total} active={statusFilter === "ALL"} onClick={() => setStatusFilter("ALL")} tone="red" />
-        <KpiCard icon={CheckCircle2} label="Disponibles" value={stats.available} active={statusFilter === "AVAILABLE"} onClick={() => setStatusFilter("AVAILABLE")} tone="green" />
-        <KpiCard icon={CalendarDays} label="En location" value={stats.rented} active={statusFilter === "RENTED"} onClick={() => setStatusFilter("RENTED")} tone="orange" />
-        <KpiCard icon={Wrench} label="En maintenance" value={stats.maintenance} active={statusFilter === "MAINTENANCE"} onClick={() => setStatusFilter("MAINTENANCE")} tone="red" />
+        <KpiCard icon={CarFront} label={t.vehicles.kpiTotal} value={stats.total} active={statusFilter === "ALL"} onClick={() => setStatusFilter("ALL")} tone="red" />
+        <KpiCard icon={CheckCircle2} label={t.vehicles.kpiAvailable} value={stats.available} active={statusFilter === "AVAILABLE"} onClick={() => setStatusFilter("AVAILABLE")} tone="green" />
+        <KpiCard icon={CalendarDays} label={t.vehicles.kpiRented} value={stats.rented} active={statusFilter === "RENTED"} onClick={() => setStatusFilter("RENTED")} tone="orange" />
+        <KpiCard icon={Wrench} label={t.vehicles.kpiMaintenance} value={stats.maintenance} active={statusFilter === "MAINTENANCE"} onClick={() => setStatusFilter("MAINTENANCE")} tone="red" />
       </div>
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -249,7 +249,7 @@ export default function VehiclesPage() {
           <div className="sm:col-span-2 lg:col-span-3">
             <button type="submit" className="btn-primary" disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {t.save}
+              {t.form.save}
             </button>
           </div>
         </form>
@@ -443,9 +443,9 @@ export default function VehiclesPage() {
                     <div className="rounded-xl border border-dashed border-[#e10600]/45 bg-red-50/50 px-4 py-8 text-center">
                       <CloudUpload className="mx-auto h-8 w-8 text-[#e10600]" />
                       <div className="mt-2 text-sm font-bold text-[#1a1d24]">
-                        Glissez-déposez vos images ici
+                        {t.form.dropzone}
                       </div>
-                      <div className="mt-1 text-xs text-gray-500">JPG, PNG, WEBP · max 10 Mo</div>
+                      <div className="mt-1 text-xs text-gray-500">{t.form.dropHint}</div>
                       <button type="button" className="btn-ghost mt-4 text-sm">
                         Sélectionner des images
                       </button>

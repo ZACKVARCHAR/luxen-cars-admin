@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/context";
 import { CloudUpload, FileText, Trash2, X } from "lucide-react";
 import { useRef } from "react";
 
@@ -10,14 +11,16 @@ export function FileDropzone({
   files,
   onChange,
   accept = "image/*,.pdf,.doc,.docx",
-  hint = "PDF, JPG, PNG, WEBP · max 12 Mo",
+  hint,
 }: {
   files: PendingFile[];
   onChange: (files: PendingFile[]) => void;
   accept?: string;
   hint?: string;
 }) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
+  const hintText = hint ?? t.form.dropHint;
 
   function add(list: FileList | null) {
     if (!list?.length) return;
@@ -44,8 +47,8 @@ export function FileDropzone({
         )}
       >
         <CloudUpload className="h-7 w-7 text-[#e10600]" />
-        <div className="mt-2 text-sm font-bold">Glissez-deposez ou cliquez pour joindre</div>
-        <div className="mt-1 text-xs text-gray-500">{hint}</div>
+        <div className="mt-2 text-sm font-bold">{t.form.dropzone}</div>
+        <div className="mt-1 text-xs text-gray-500">{hintText}</div>
         <input
           ref={inputRef}
           type="file"
@@ -77,7 +80,7 @@ export function FileDropzone({
                 type="button"
                 className="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
                 onClick={() => onChange(files.filter((x) => x.id !== f.id))}
-                aria-label="Retirer"
+                aria-label={t.form.remove}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -98,8 +101,10 @@ export function AttachmentList({
   onDownload: (id: string) => void;
   onDelete?: (id: string) => void;
 }) {
+  const { t } = useI18n();
+
   if (!items.length) {
-    return <div className="text-sm text-gray-500">Aucune piece jointe.</div>;
+    return <div className="text-sm text-gray-500">{t.form.noAttachments}</div>;
   }
   return (
     <ul className="space-y-1.5">
@@ -114,7 +119,12 @@ export function AttachmentList({
             <span className="shrink-0 text-xs text-gray-400">{(d.sizeBytes / 1024).toFixed(0)} Ko</span>
           </button>
           {onDelete && (
-            <button type="button" className="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600" onClick={() => onDelete(d.id)}>
+            <button
+              type="button"
+              className="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+              onClick={() => onDelete(d.id)}
+              aria-label={t.form.remove}
+            >
               <Trash2 className="h-4 w-4" />
             </button>
           )}

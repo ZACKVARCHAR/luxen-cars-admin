@@ -200,7 +200,7 @@ export default function RentalsPage() {
             <Field name="bodyNotes" label="Carrosserie" placeholder="RAS, rayure aile AV droite…" />
             <Field name="interiorNotes" label="Intérieur" placeholder="Propre, siège enfant…" />
             <Field name="damages" label="Dommages constatés" placeholder="Aucun" />
-            <Field name="notes" label="Notes contrat" placeholder="Remise aéroport, GPS inclus…" />
+            <Field name="notes" label={t.form.notes} placeholder="Remise aéroport, GPS inclus…" />
           </div>
           <button className="btn-primary" disabled={busy === openReservation.id}>
             {busy === openReservation.id ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
@@ -258,7 +258,7 @@ export default function RentalsPage() {
             <Field name="bodyNotes" label="Carrosserie retour" />
             <Field name="interiorNotes" label="Intérieur retour" />
             <Field name="damages" label="Nouveaux dommages" />
-            <Field name="notes" label="Notes de clôture" />
+            <Field name="notes" label={t.form.notes} />
           </div>
           <button className="btn-primary" disabled={busy === closeRental.id}>
             {busy === closeRental.id ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
@@ -269,7 +269,7 @@ export default function RentalsPage() {
 
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[960px] text-left text-sm">
+          <table className="w-full min-w-[960px] text-start text-sm">
             <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
               <tr>
                 <th className="px-4 py-3">Contrat</th>

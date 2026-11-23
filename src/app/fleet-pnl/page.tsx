@@ -78,10 +78,10 @@ export default function FleetPnlPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1000px] text-left text-sm">
+            <table className="w-full min-w-[1000px] text-start text-sm">
               <thead className="bg-gray-50 text-xs uppercase text-gray-500">
                 <tr>
-                  <th className="px-4 py-3">Véhicule</th>
+                  <th className="px-4 py-3">{t.form.vehicle}</th>
                   <th className="px-4 py-3">Jours</th>
                   <th className="px-4 py-3">CA</th>
                   <th className="px-4 py-3">Coûts</th>

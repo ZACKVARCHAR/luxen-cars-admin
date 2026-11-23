@@ -9,7 +9,7 @@ import { Loader2, Plus } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
 export default function InsurancePage() {
-  const { t } = useI18n();
+  const { t, formatMoney } = useI18n();
   const [rows, setRows] = useState<InsurancePolicy[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [error, setError] = useState("");
@@ -68,7 +68,7 @@ export default function InsurancePage() {
         ]}
         actions={
           <button type="button" className="btn-primary" onClick={() => setOpen((v) => !v)}>
-            <Plus className="h-4 w-4" /> {t.new}
+            <Plus className="h-4 w-4" /> {t.form.newInsurance}
           </button>
         }
       />
@@ -76,7 +76,7 @@ export default function InsurancePage() {
       {open && (
         <form onSubmit={onCreate} className="card mb-5 grid gap-3 p-5 sm:grid-cols-3">
           <label className="block sm:col-span-2">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Véhicule</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.vehicle}</span>
             <select className="field" name="vehicleId" required>
               {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>{v.brand} {v.model} · {v.registration}</option>
@@ -84,49 +84,49 @@ export default function InsurancePage() {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Assureur</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.insurer}</span>
             <input className="field" name="insurer" required />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">N° police</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.policyNumber}</span>
             <input className="field" name="policyNumber" required />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Couverture</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.coverage}</span>
             <input className="field" name="coverage" placeholder="Tous risques" />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Franchise</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.franchise}</span>
             <input className="field" name="deductible" type="number" step="0.01" defaultValue={0} />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Prime annuelle</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.annualPremium}</span>
             <input className="field" name="annualPremium" type="number" step="0.01" defaultValue={0} />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Début</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.start}</span>
             <input className="field" name="startDate" type="date" required />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Fin</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.end}</span>
             <input className="field" name="endDate" type="date" required />
           </label>
           <div className="sm:col-span-3">
             <button className="btn-primary" disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Enregistrer
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} {t.form.save}
             </button>
           </div>
         </form>
       )}
       <div className="card overflow-hidden">
-        <table className="w-full min-w-[860px] text-left text-sm">
+        <table className="w-full min-w-[860px] text-start text-sm">
           <thead className="bg-gray-50 text-xs uppercase text-gray-500">
             <tr>
-              <th className="px-4 py-3">Assureur</th>
-              <th className="px-4 py-3">Police</th>
-              <th className="px-4 py-3">Période</th>
-              <th className="px-4 py-3">Prime</th>
-              <th className="px-4 py-3">Franchise</th>
+              <th className="px-4 py-3">{t.form.insurer}</th>
+              <th className="px-4 py-3">{t.insurance.policy}</th>
+              <th className="px-4 py-3">{t.insurance.period}</th>
+              <th className="px-4 py-3">{t.insurance.premium}</th>
+              <th className="px-4 py-3">{t.form.franchise}</th>
             </tr>
           </thead>
           <tbody>
@@ -135,8 +135,8 @@ export default function InsurancePage() {
                 <td className="px-4 py-3 font-semibold">{p.insurer}</td>
                 <td className="px-4 py-3 text-xs">{p.policyNumber}<div className="text-gray-500">{p.coverage || ""}</div></td>
                 <td className="px-4 py-3 text-xs">{p.startDate} → {p.endDate}</td>
-                <td className="px-4 py-3 font-bold text-[#e10600]">{Number(p.annualPremium).toLocaleString("fr-MA")} MAD</td>
-                <td className="px-4 py-3">{Number(p.deductible).toLocaleString("fr-MA")} MAD</td>
+                <td className="px-4 py-3 font-bold text-[#e10600]">{formatMoney(p.annualPremium)}</td>
+                <td className="px-4 py-3">{formatMoney(p.deductible)}</td>
               </tr>
             ))}
             {!rows.length && (

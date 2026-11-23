@@ -68,7 +68,7 @@ export default function IncidentsPage() {
         ]}
         actions={
           <button type="button" className="btn-primary" onClick={() => setOpen((v) => !v)}>
-            <Plus className="h-4 w-4" /> {t.add}
+            <Plus className="h-4 w-4" /> {t.form.newIncident}
           </button>
         }
       />
@@ -76,7 +76,7 @@ export default function IncidentsPage() {
       {open && (
         <form onSubmit={onCreate} className="card mb-5 grid gap-3 p-5 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Véhicule</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.vehicle}</span>
             <select className="field" name="vehicleId" required>
               {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>{v.brand} {v.model} · {v.registration}</option>
@@ -84,15 +84,15 @@ export default function IncidentsPage() {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Lieu</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.place}</span>
             <input className="field" name="location" />
           </label>
           <label className="block sm:col-span-2">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Description</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.description}</span>
             <textarea className="field min-h-24" name="description" required />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Responsabilité</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.liability}</span>
             <select className="field" name="responsibility" defaultValue="UNKNOWN">
               <option value="CLIENT">Client</option>
               <option value="THIRD_PARTY">Tiers</option>
@@ -101,28 +101,28 @@ export default function IncidentsPage() {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Coût réparation</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.repairCost}</span>
             <input className="field" name="repairCost" type="number" step="0.01" defaultValue={0} />
           </label>
           <label className="flex items-center gap-2 text-sm font-semibold">
-            <input type="checkbox" name="immobilize" defaultChecked /> Immobiliser (ACCIDENTED)
+            <input type="checkbox" name="immobilize" defaultChecked /> {t.form.immobilize}
           </label>
           <div className="sm:col-span-2">
             <button className="btn-primary" disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Enregistrer
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} {t.form.save}
             </button>
           </div>
         </form>
       )}
       <div className="card overflow-hidden">
-        <table className="w-full min-w-[900px] text-left text-sm">
+        <table className="w-full min-w-[900px] text-start text-sm">
           <thead className="bg-gray-50 text-xs uppercase text-gray-500">
             <tr>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Description</th>
-              <th className="px-4 py-3">Coûts</th>
-              <th className="px-4 py-3">Statut</th>
-              <th className="px-4 py-3">Action</th>
+              <th className="px-4 py-3">{t.form.date}</th>
+              <th className="px-4 py-3">{t.form.description}</th>
+              <th className="px-4 py-3">{t.incidents.costs}</th>
+              <th className="px-4 py-3">{t.form.status}</th>
+              <th className="px-4 py-3">{t.actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -157,7 +157,7 @@ export default function IncidentsPage() {
                         }
                       }}
                     >
-                      Clôturer
+                      {t.incidents.close}
                     </button>
                   )}
                 </td>

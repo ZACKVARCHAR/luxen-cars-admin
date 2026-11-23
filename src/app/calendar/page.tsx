@@ -117,10 +117,10 @@ export default function CalendarPage() {
                 return n;
               })}
             >
-              <ChevronLeft className="h-4 w-4" /> Semaine
+              <ChevronLeft className="h-4 w-4" /> {t.calendar.week}
             </button>
             <button type="button" className="btn-ghost" onClick={() => setAnchor(new Date())}>
-              Aujourd&apos;hui
+              {t.form.today}
             </button>
             <button
               type="button"
@@ -131,10 +131,10 @@ export default function CalendarPage() {
                 return n;
               })}
             >
-              Semaine <ChevronRight className="h-4 w-4" />
+              {t.calendar.week} <ChevronRight className="h-4 w-4" />
             </button>
             <button type="button" className="btn-primary" onClick={() => setBlockOpen((v) => !v)}>
-              <Plus className="h-4 w-4" /> Bloquer un créneau
+              <Plus className="h-4 w-4" /> {t.calendar.blockSlot}
             </button>
           </div>
         }
@@ -151,7 +151,7 @@ export default function CalendarPage() {
       {blockOpen && data && (
         <form onSubmit={onBlock} className="card mb-5 grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-5">
           <label className="block lg:col-span-2">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Véhicule</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.vehicle}</span>
             <select className="field" name="vehicleId" required>
               {data.vehicles.map((v) => (
                 <option key={v.vehicle.id} value={v.vehicle.id}>
@@ -161,7 +161,7 @@ export default function CalendarPage() {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Type</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.type}</span>
             <select className="field" name="blockType" defaultValue="MANUAL">
               <option value="MANUAL">Manuel</option>
               <option value="OWNER_USE">Usage propriétaire</option>
@@ -170,20 +170,20 @@ export default function CalendarPage() {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Début</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.start}</span>
             <input className="field" type="date" name="startDate" required defaultValue={from} />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Fin</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.end}</span>
             <input className="field" type="date" name="endDate" required defaultValue={to} />
           </label>
           <label className="block sm:col-span-2 lg:col-span-4">
-            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Motif</span>
+            <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.reason}</span>
             <input className="field" name="reason" placeholder="Ex: voiture chez le carrossier" />
           </label>
           <div className="flex items-end">
             <button className="btn-primary" disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Enregistrer
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} {t.form.save}
             </button>
           </div>
         </form>
@@ -200,14 +200,14 @@ export default function CalendarPage() {
       <div className="card overflow-hidden">
         {loading || !data ? (
           <div className="flex items-center justify-center gap-2 py-16 text-sm text-gray-500">
-            <Loader2 className="h-4 w-4 animate-spin" /> Chargement du planning…
+            <Loader2 className="h-4 w-4 animate-spin" /> {t.calendar.loadingPlanning}
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1100px] border-collapse text-left text-xs">
+            <table className="w-full min-w-[1100px] border-collapse text-start text-xs">
               <thead className="bg-gray-50 text-[10px] uppercase tracking-wide text-gray-500">
                 <tr>
-                  <th className="sticky left-0 z-10 bg-gray-50 px-3 py-3">Véhicule</th>
+                  <th className="sticky start-0 z-10 bg-gray-50 px-3 py-3">{t.form.vehicle}</th>
                   {days.map((d) => (
                     <th key={d} className="px-1 py-3 text-center">
                       {new Date(d + "T12:00:00").toLocaleDateString("fr-MA", {
@@ -223,7 +223,7 @@ export default function CalendarPage() {
                   const hasConflict = data.conflicts.some((c) => c.vehicleId === row.vehicle.id);
                   return (
                     <tr key={row.vehicle.id} className="border-t border-[#e8eaee]">
-                      <td className="sticky left-0 z-10 bg-white px-3 py-2">
+                      <td className="sticky start-0 z-10 bg-white px-3 py-2">
                         <div className="font-semibold text-sm text-gray-900">
                           {row.vehicle.brand} {row.vehicle.model}
                         </div>

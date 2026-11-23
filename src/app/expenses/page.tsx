@@ -132,7 +132,7 @@ export default function ExpensesPage() {
             }}
           >
             {open ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            {open ? t.close : t.new}
+            {open ? t.form.close : t.form.newExpense}
           </button>
         }
       />
@@ -141,14 +141,12 @@ export default function ExpensesPage() {
       {open && (
         <form onSubmit={onCreate} className="card mb-5 space-y-4 p-5">
           <div>
-            <h2 className="font-display text-lg font-bold">Saisie dépense</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Catégorisez la charge et joignez la facture ou le ticket pour l&apos;audit.
-            </p>
+            <h2 className="font-display text-lg font-bold">{t.expenses.formTitle}</h2>
+            <p className="mt-1 text-sm text-gray-500">{t.expenses.formHint}</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Catégorie</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.category}</span>
               <select className="field" name="category" defaultValue="MAINTENANCE" required>
                 {CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>{c.label}</option>
@@ -156,15 +154,15 @@ export default function ExpensesPage() {
               </select>
             </label>
             <label className="block sm:col-span-2">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Libellé</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.label}</span>
               <input className="field" name="label" required placeholder="Vidange Duster · Garage Atlas" />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Montant (MAD)</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.amountMad}</span>
               <input className="field" name="amount" type="number" step="0.01" min="0.01" required />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Date</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.date}</span>
               <input
                 className="field"
                 name="expenseDate"
@@ -174,9 +172,9 @@ export default function ExpensesPage() {
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Véhicule</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.vehicle}</span>
               <select className="field" name="vehicleId" defaultValue="">
-                <option value="">— Charge générale —</option>
+                <option value="">{t.expenses.generalCharge}</option>
                 {vehicles.map((v) => (
                   <option key={v.id} value={v.id}>
                     {v.brand} {v.model} · {v.registration}
@@ -185,30 +183,30 @@ export default function ExpensesPage() {
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Fournisseur</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.vendor}</span>
               <input className="field" name="vendor" placeholder="Garage, assureur, station…" />
             </label>
             <label className="block sm:col-span-2">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Notes</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.notes}</span>
               <input className="field" name="notes" placeholder="N° facture, période couverte…" />
             </label>
           </div>
           <div>
             <div className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">
-              Facture / ticket (pièce jointe)
+              {t.expenses.attachInvoice}
             </div>
             <FileDropzone files={pendingFiles} onChange={setPendingFiles} />
           </div>
           <button className="btn-primary" disabled={saving}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            Enregistrer
+            {t.form.save}
           </button>
         </form>
       )}
 
       <div className="mb-4">
         <select className="field w-auto" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-          <option value="ALL">Toutes catégories</option>
+          <option value="ALL">{t.expenses.allCategories}</option>
           {CATEGORIES.map((c) => (
             <option key={c.value} value={c.value}>{c.label}</option>
           ))}
@@ -217,14 +215,14 @@ export default function ExpensesPage() {
 
       <div className="grid gap-5 xl:grid-cols-[1.4fr_0.85fr]">
         <div className="card overflow-hidden">
-          <table className="w-full min-w-[800px] text-left text-sm">
+          <table className="w-full min-w-[800px] text-start text-sm">
             <thead className="bg-gray-50 text-xs uppercase text-gray-500">
               <tr>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Catégorie</th>
-                <th className="px-4 py-3">Libellé</th>
-                <th className="px-4 py-3">Montant</th>
-                <th className="px-4 py-3">Fournisseur</th>
+                <th className="px-4 py-3">{t.form.date}</th>
+                <th className="px-4 py-3">{t.form.category}</th>
+                <th className="px-4 py-3">{t.form.label}</th>
+                <th className="px-4 py-3">{t.form.amount}</th>
+                <th className="px-4 py-3">{t.form.vendor}</th>
               </tr>
             </thead>
             <tbody>
@@ -240,9 +238,9 @@ export default function ExpensesPage() {
                     <td className="px-4 py-3 text-xs font-semibold">{cat}</td>
                     <td className="px-4 py-3">{e.label}</td>
                     <td className="px-4 py-3 font-bold text-[#e10600]">
-                      {Number(e.amount).toLocaleString("fr-MA")} MAD
+                      {formatMoney(e.amount)}
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-500">{e.vendor || "—"}</td>
+                    <td className="px-4 py-3 text-xs text-gray-500">{e.vendor || t.none}</td>
                   </tr>
                 );
               })}
@@ -261,11 +259,11 @@ export default function ExpensesPage() {
           {!selectedId ? (
             <div className="flex min-h-[200px] flex-col items-center justify-center text-center text-sm text-gray-500">
               <Paperclip className="mb-2 h-7 w-7 text-gray-300" />
-              Sélectionnez une dépense pour voir ses justificatifs.
+              {t.expenses.selectHint}
             </div>
           ) : (
             <div className="space-y-3">
-              <h3 className="font-display text-lg font-bold">Justificatifs</h3>
+              <h3 className="font-display text-lg font-bold">{t.expenses.proofs}</h3>
               <AttachmentList
                 items={docs}
                 onDownload={(id) => {
@@ -277,7 +275,7 @@ export default function ExpensesPage() {
                     await api.deleteDocument(id);
                     setDocs(await api.listDocuments("EXPENSE", selectedId));
                   } catch (err) {
-                    setError(err instanceof Error ? err.message : "Suppression impossible");
+                    setError(err instanceof Error ? err.message : t.payments.deleteFailed);
                   }
                 }}
               />

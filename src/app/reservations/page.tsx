@@ -52,15 +52,15 @@ export default function ReservationsPage() {
 
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] text-left text-sm">
+          <table className="w-full min-w-[980px] text-start text-sm">
             <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
               <tr>
-                <th className="px-4 py-3">Réf.</th>
-                <th className="px-4 py-3">Période</th>
-                <th className="px-4 py-3">Canal</th>
-                <th className="px-4 py-3">Total</th>
-                <th className="px-4 py-3">Paiement</th>
-                <th className="px-4 py-3">Statut</th>
+                <th className="px-4 py-3">{t.reservations.ref}</th>
+                <th className="px-4 py-3">{t.reservations.period}</th>
+                <th className="px-4 py-3">{t.reservations.channel}</th>
+                <th className="px-4 py-3">{t.reservations.total}</th>
+                <th className="px-4 py-3">{t.reservations.payment}</th>
+                <th className="px-4 py-3">{t.form.status}</th>
               </tr>
             </thead>
             <tbody>

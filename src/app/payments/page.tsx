@@ -18,25 +18,14 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-const KIND_LABELS: Record<string, string> = {
-  PAYMENT: "Paiement location",
-  DEPOSIT: "Caution",
-  REFUND: "Remboursement",
-  RETENTION: "Retenue caution",
-  EXTRA: "Frais annexes",
-};
-
-const METHOD_LABELS: Record<string, string> = {
-  CASH: "Espèces",
-  CARD: "Carte bancaire",
-  TRANSFER: "Virement",
-  CHECK: "Chèque",
-  ONLINE: "Paiement en ligne",
-  OTHER: "Autre",
-};
+const PAYMENT_KINDS = ["PAYMENT", "DEPOSIT", "REFUND", "RETENTION", "EXTRA"] as const;
+const PAYMENT_METHODS = ["CASH", "CARD", "TRANSFER", "CHECK", "ONLINE", "OTHER"] as const;
 
 export default function PaymentsPage() {
-  const { t, formatMoney } = useI18n();
+  const { t, formatMoney, locale } = useI18n();
+  const dateLocale = locale === "ar" ? "ar-MA" : "fr-MA";
+  const kindLabels = t.payments.kind as Record<string, string>;
+  const methodLabels = t.payments.method as Record<string, string>;
   const [rows, setRows] = useState<Payment[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rentals, setRentals] = useState<Rental[]>([]);
@@ -154,7 +143,7 @@ export default function PaymentsPage() {
       for (const pf of pendingFiles) {
         await api.uploadDocument("PAYMENT", payment.id, pf.file, {
           category: "RECEIPT",
-          label: "Justificatif paiement",
+          label: t.payments.receiptLabel,
         });
       }
       setOpen(false);
@@ -180,7 +169,7 @@ export default function PaymentsPage() {
       setDocs(await api.listDocuments("PAYMENT", selectedId));
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload impossible");
+      setError(e instanceof Error ? e.message : t.payments.uploadFailed);
     } finally {
       setSaving(false);
     }
@@ -206,39 +195,37 @@ export default function PaymentsPage() {
             }}
           >
             {open ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            {open ? "Fermer" : "Nouveau paiement"}
+            {open ? t.form.close : t.form.newPayment}
           </button>
         }
       />
       {error && <AlertBox>{error}</AlertBox>}
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard icon={Banknote} label="Encaissé" value={`${totals.collected.toLocaleString("fr-MA")} MAD`} tone="green" />
-        <KpiCard icon={CreditCard} label="Remboursé" value={`${totals.refunds.toLocaleString("fr-MA")} MAD`} tone="orange" />
-        <KpiCard icon={FileStack} label="Écritures" value={totals.count} tone="slate" />
-        <KpiCard icon={Paperclip} label="Avec pièces jointes" value={totals.withFiles} tone="red" />
+        <KpiCard icon={Banknote} label={t.payments.collected} value={formatMoney(totals.collected)} tone="green" />
+        <KpiCard icon={CreditCard} label={t.payments.refunded} value={formatMoney(totals.refunds)} tone="orange" />
+        <KpiCard icon={FileStack} label={t.payments.entries} value={totals.count} tone="slate" />
+        <KpiCard icon={Paperclip} label={t.payments.withAttachments} value={totals.withFiles} tone="red" />
       </div>
 
       {open && (
         <form onSubmit={onCreate} className="card mb-5 space-y-5 p-5">
           <div>
-            <h2 className="font-display text-lg font-bold">Saisie d&apos;un encaissement</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Renseignez le lien métier, le mode de paiement et joignez le reçu ou le relevé.
-            </p>
+            <h2 className="font-display text-lg font-bold">{t.payments.formTitle}</h2>
+            <p className="mt-1 text-sm text-gray-500">{t.payments.formHint}</p>
           </div>
 
           <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Type</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.type}</span>
               <select className="field" name="kind" defaultValue="PAYMENT" required>
-                {Object.entries(KIND_LABELS).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
+                {PAYMENT_KINDS.map((k) => (
+                  <option key={k} value={k}>{kindLabels[k]}</option>
                 ))}
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Méthode</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.method}</span>
               <select
                 className="field"
                 name="method"
@@ -246,26 +233,26 @@ export default function PaymentsPage() {
                 onChange={(e) => setMethod(e.target.value)}
                 required
               >
-                {Object.entries(METHOD_LABELS).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
+                {PAYMENT_METHODS.map((k) => (
+                  <option key={k} value={k}>{methodLabels[k]}</option>
                 ))}
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Montant (MAD)</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.amountMad}</span>
               <input className="field" name="amount" type="number" min="0.01" step="0.01" required placeholder="0.00" />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">N° reçu / chèque</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.payments.receiptNumber}</span>
               <input className="field" name="receiptNumber" placeholder="REC-2026-014" />
             </label>
           </section>
 
           <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Client</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.client}</span>
               <select className="field" name="customerId" defaultValue="">
-                <option value="">— Non lié —</option>
+                <option value="">{t.form.unlinked}</option>
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.firstName} {c.lastName} · {c.phone}
@@ -274,23 +261,23 @@ export default function PaymentsPage() {
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Location</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.rental}</span>
               <select className="field" name="rentalId" defaultValue="">
-                <option value="">— Non lié —</option>
+                <option value="">{t.form.unlinked}</option>
                 {rentals.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.contractRef || r.id.slice(0, 8)} · solde {Number(r.balance).toLocaleString("fr-MA")} MAD
+                    {r.contractRef || r.id.slice(0, 8)} · {formatMoney(r.balance)}
                   </option>
                 ))}
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Réservation</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.form.reservation}</span>
               <select className="field" name="reservationId" defaultValue="">
-                <option value="">— Non lié —</option>
+                <option value="">{t.form.unlinked}</option>
                 {reservations.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.publicCode || r.id.slice(0, 8)} · {Number(r.totalAmount).toLocaleString("fr-MA")} MAD
+                    {r.publicCode || r.id.slice(0, 8)} · {formatMoney(r.totalAmount)}
                   </option>
                 ))}
               </select>
@@ -299,12 +286,12 @@ export default function PaymentsPage() {
 
           <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Référence opération</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.payments.opReference}</span>
               <input className="field" name="reference" placeholder="VIR-ATTIJARI-8891" />
             </label>
             <label className="block">
               <span className="mb-1 block text-xs font-bold uppercase text-gray-500">
-                Banque {needsBank ? "*" : ""}
+                {t.form.bank} {needsBank ? "*" : ""}
               </span>
               <input
                 className="field"
@@ -314,14 +301,14 @@ export default function PaymentsPage() {
               />
             </label>
             <label className="block sm:col-span-2 lg:col-span-1">
-              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Notes internes</span>
+              <span className="mb-1 block text-xs font-bold uppercase text-gray-500">{t.payments.internalNotes}</span>
               <input className="field" name="notes" placeholder="Acompte 50 %, reste à la remise" />
             </label>
           </section>
 
           <section>
             <div className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">
-              Pièces jointes (reçu, capture virement, scan chèque)
+              {t.payments.attachHint}
             </div>
             <FileDropzone files={pendingFiles} onChange={setPendingFiles} />
           </section>
@@ -329,7 +316,7 @@ export default function PaymentsPage() {
           <div className="flex flex-wrap gap-2">
             <button className="btn-primary" disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-              Enregistrer le paiement
+              {t.payments.savePayment}
             </button>
             <button
               type="button"
@@ -339,7 +326,7 @@ export default function PaymentsPage() {
                 setPendingFiles([]);
               }}
             >
-              Annuler
+              {t.form.cancel}
             </button>
           </div>
         </form>
@@ -347,24 +334,24 @@ export default function PaymentsPage() {
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[220px] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
-            className="field pl-9"
-            placeholder="Filtrer référence, banque, client…"
+            className="field ps-9"
+            placeholder={t.payments.filterPlaceholder}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
         <select className="field w-auto" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}>
-          <option value="ALL">Tous les types</option>
-          {Object.entries(KIND_LABELS).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
+          <option value="ALL">{t.form.allTypes}</option>
+          {PAYMENT_KINDS.map((k) => (
+            <option key={k} value={k}>{kindLabels[k]}</option>
           ))}
         </select>
         <select className="field w-auto" value={methodFilter} onChange={(e) => setMethodFilter(e.target.value)}>
-          <option value="ALL">Toutes méthodes</option>
-          {Object.entries(METHOD_LABELS).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
+          <option value="ALL">{t.form.allMethods}</option>
+          {PAYMENT_METHODS.map((k) => (
+            <option key={k} value={k}>{methodLabels[k]}</option>
           ))}
         </select>
       </div>
@@ -372,15 +359,15 @@ export default function PaymentsPage() {
       <div className="grid gap-5 xl:grid-cols-[1.4fr_0.9fr]">
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] text-left text-sm">
+            <table className="w-full min-w-[860px] text-start text-sm">
               <thead className="bg-gray-50 text-xs uppercase text-gray-500">
                 <tr>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Type</th>
-                  <th className="px-4 py-3">Client / lien</th>
-                  <th className="px-4 py-3">Méthode</th>
-                  <th className="px-4 py-3">Montant</th>
-                  <th className="px-4 py-3">PJ</th>
+                  <th className="px-4 py-3">{t.form.date}</th>
+                  <th className="px-4 py-3">{t.form.type}</th>
+                  <th className="px-4 py-3">{t.payments.clientLink}</th>
+                  <th className="px-4 py-3">{t.form.method}</th>
+                  <th className="px-4 py-3">{t.form.amount}</th>
+                  <th className="px-4 py-3">{t.form.attachments}</th>
                 </tr>
               </thead>
               <tbody>
@@ -394,20 +381,20 @@ export default function PaymentsPage() {
                       onClick={() => setSelectedId(p.id)}
                     >
                       <td className="px-4 py-3 text-xs text-gray-600">
-                        {new Date(p.paidAt).toLocaleString("fr-MA")}
+                        {new Date(p.paidAt).toLocaleString(dateLocale)}
                       </td>
-                      <td className="px-4 py-3 font-semibold">{KIND_LABELS[p.kind] || p.kind}</td>
+                      <td className="px-4 py-3 font-semibold">{kindLabels[p.kind] || p.kind}</td>
                       <td className="px-4 py-3">
                         <div className="font-medium">
-                          {customer ? `${customer.firstName} ${customer.lastName}` : "—"}
+                          {customer ? `${customer.firstName} ${customer.lastName}` : t.none}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {p.receiptNumber || p.reference || p.bankName || "Sans référence"}
+                          {p.receiptNumber || p.reference || p.bankName || t.payments.noReference}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-xs">{METHOD_LABELS[p.method] || p.method}</td>
+                      <td className="px-4 py-3 text-xs">{methodLabels[p.method] || p.method}</td>
                       <td className="px-4 py-3 font-bold text-[#e10600]">
-                        {Number(p.amount).toLocaleString("fr-MA")} MAD
+                        {formatMoney(p.amount)}
                       </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600">
@@ -434,36 +421,36 @@ export default function PaymentsPage() {
           {!selected ? (
             <div className="flex h-full min-h-[240px] flex-col items-center justify-center text-center text-sm text-gray-500">
               <Paperclip className="mb-2 h-8 w-8 text-gray-300" />
-              Sélectionnez un paiement pour voir le détail et les pièces jointes.
+              {t.payments.selectHint}
             </div>
           ) : (
             <div className="space-y-4">
               <div>
-                <div className="text-xs font-bold uppercase tracking-wide text-gray-400">Détail</div>
+                <div className="text-xs font-bold uppercase tracking-wide text-gray-400">{t.form.detail}</div>
                 <h3 className="mt-1 font-display text-xl font-bold">
-                  {KIND_LABELS[selected.kind] || selected.kind}
+                  {kindLabels[selected.kind] || selected.kind}
                 </h3>
                 <p className="mt-1 text-2xl font-extrabold text-[#e10600]">
-                  {Number(selected.amount).toLocaleString("fr-MA")} MAD
+                  {formatMoney(selected.amount)}
                 </p>
               </div>
 
               <dl className="grid gap-2 text-sm">
-                <Row label="Méthode" value={METHOD_LABELS[selected.method] || selected.method} />
-                <Row label="Banque" value={selected.bankName || "—"} />
-                <Row label="N° reçu" value={selected.receiptNumber || "—"} />
-                <Row label="Référence" value={selected.reference || "—"} />
-                <Row label="Notes" value={selected.notes || "—"} />
-                <Row label="Date" value={new Date(selected.paidAt).toLocaleString("fr-MA")} />
+                <Row label={t.form.method} value={methodLabels[selected.method] || selected.method} />
+                <Row label={t.form.bank} value={selected.bankName || t.none} />
+                <Row label={t.payments.receiptShort} value={selected.receiptNumber || t.none} />
+                <Row label={t.form.reference} value={selected.reference || t.none} />
+                <Row label={t.form.notes} value={selected.notes || t.none} />
+                <Row label={t.form.date} value={new Date(selected.paidAt).toLocaleString(dateLocale)} />
               </dl>
 
               <div>
                 <div className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">
-                  Pièces jointes
+                  {t.form.attachments}
                 </div>
                 {docsLoading ? (
                   <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Chargement…
+                    <Loader2 className="h-4 w-4 animate-spin" /> {t.form.loading}
                   </div>
                 ) : (
                   <AttachmentList
@@ -478,7 +465,7 @@ export default function PaymentsPage() {
                         setDocs(await api.listDocuments("PAYMENT", selected.id));
                         await load();
                       } catch (e) {
-                        setError(e instanceof Error ? e.message : "Suppression impossible");
+                        setError(e instanceof Error ? e.message : t.payments.deleteFailed);
                       }
                     }}
                   />
@@ -487,13 +474,14 @@ export default function PaymentsPage() {
 
               <div>
                 <div className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">
-                  Ajouter un justificatif
+                  {t.payments.addProof}
                 </div>
                 <FileDropzone files={extraFiles} onChange={setExtraFiles} />
                 {extraFiles.length > 0 && (
                   <button type="button" className="btn-primary mt-3" disabled={saving} onClick={uploadExtra}>
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-                    Joindre {extraFiles.length} fichier{extraFiles.length > 1 ? "s" : ""}
+                    {t.payments.attachFiles} {extraFiles.length}{" "}
+                    {extraFiles.length > 1 ? t.payments.filesPlural : t.payments.files}
                   </button>
                 )}
               </div>
