@@ -3,6 +3,7 @@
 import { AdminShell } from "@/components/AdminShell";
 import { AlertBox, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { FleetCompositionResult, ProjectAssumptions, ProjectResult, ScenarioResult } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import { FormEvent, useState } from "react";
@@ -28,6 +29,7 @@ const DEFAULTS: ProjectAssumptions = {
 };
 
 export default function FinancePage() {
+  const { t } = useI18n();
   const [form, setForm] = useState<ProjectAssumptions>(DEFAULTS);
   const [result, setResult] = useState<ProjectResult | null>(null);
   const [scenarios, setScenarios] = useState<ScenarioResult[]>([]);
@@ -51,7 +53,7 @@ export default function FinancePage() {
       setResult(proj);
       setScenarios(scen);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur simulation");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setLoading(false);
     }
@@ -100,18 +102,22 @@ export default function FinancePage() {
       });
       setCompositions(rows);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur comparaison");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <AdminShell>
+    <AdminShell searchPlaceholder={t.searchOps}>
       <PageHeader
-        title="Finance & Simulateur"
-        subtitle="Rentabilité, scénarios d’occupation et compositions de flotte."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Pilotage" }, { label: "Finance" }]}
+        title={t.finance.title}
+        subtitle={t.finance.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.pilotage },
+          { label: t.nav.finance },
+        ]}
       />
 
       {error && <AlertBox>{error}</AlertBox>}

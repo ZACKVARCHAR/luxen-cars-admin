@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/AdminShell";
 import { AttachmentList, FileDropzone, type PendingFile } from "@/components/FileDropzone";
 import { AlertBox, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { Expense, StoredDocument, Vehicle } from "@/lib/types";
 import { Loader2, Paperclip, Plus, X } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -27,6 +28,7 @@ const CATEGORIES: { value: string; label: string }[] = [
 ];
 
 export default function ExpensesPage() {
+  const { t, formatMoney } = useI18n();
   const [rows, setRows] = useState<Expense[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [error, setError] = useState("");
@@ -44,7 +46,7 @@ export default function ExpensesPage() {
       setVehicles(v);
       setError("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur");
+      setError(err instanceof Error ? err.message : t.error);
     }
   }
 
@@ -63,7 +65,7 @@ export default function ExpensesPage() {
         const list = await api.listDocuments("EXPENSE", selectedId);
         if (!cancelled) setDocs(list);
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Erreur documents");
+        if (!cancelled) setError(e instanceof Error ? e.message : t.error);
       }
     })();
     return () => {
@@ -104,18 +106,22 @@ export default function ExpensesPage() {
       setSelectedId(expense.id);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <AdminShell>
+    <AdminShell searchPlaceholder={t.searchOps}>
       <PageHeader
-        title="Dépenses"
-        subtitle={`Total filtré : ${total.toLocaleString("fr-MA")} MAD`}
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Trésorerie" }, { label: "Dépenses" }]}
+        title={t.expenses.title}
+        subtitle={`${t.expenses.subtitle} · ${formatMoney(total)}`}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.treasury },
+          { label: t.nav.expenses },
+        ]}
         actions={
           <button
             type="button"
@@ -126,7 +132,7 @@ export default function ExpensesPage() {
             }}
           >
             {open ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            {open ? "Fermer" : "Nouvelle dépense"}
+            {open ? t.close : t.new}
           </button>
         }
       />
@@ -243,7 +249,7 @@ export default function ExpensesPage() {
               {!filtered.length && (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                    Aucune dépense.
+                    {t.expenses.empty}
                   </td>
                 </tr>
               )}

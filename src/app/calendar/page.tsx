@@ -3,6 +3,7 @@
 import { AdminShell } from "@/components/AdminShell";
 import { AlertBox, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { FleetCalendar } from "@/lib/types";
 import { ChevronLeft, ChevronRight, Loader2, Plus } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -19,6 +20,7 @@ function toIsoDate(d: Date) {
 }
 
 export default function CalendarPage() {
+  const { t } = useI18n();
   const [anchor, setAnchor] = useState(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -53,7 +55,7 @@ export default function CalendarPage() {
       setData(await api.getFleetCalendar(from, to));
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     } finally {
       setLoading(false);
     }
@@ -81,7 +83,7 @@ export default function CalendarPage() {
       setBlockOpen(false);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setSaving(false);
     }
@@ -95,11 +97,15 @@ export default function CalendarPage() {
   }
 
   return (
-    <AdminShell>
+    <AdminShell searchPlaceholder={t.searchOps}>
       <PageHeader
-        title="Calendrier flotte"
-        subtitle="Occupation 14 jours · réservations, locations, maintenance et blocages."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Opérations" }, { label: "Calendrier" }]}
+        title={t.calendar.title}
+        subtitle={t.calendar.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.operations },
+          { label: t.nav.calendar },
+        ]}
         actions={
           <div className="flex flex-wrap gap-2">
             <button

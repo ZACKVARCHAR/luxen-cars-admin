@@ -3,11 +3,13 @@
 import { AdminShell } from "@/components/AdminShell";
 import { AlertBox, KpiCard, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { VehiclePnl } from "@/lib/types";
 import { CircleDollarSign, Loader2, TrendingDown, TrendingUp } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 export default function FleetPnlPage() {
+  const { t, formatMoney } = useI18n();
   const now = new Date();
   const [from, setFrom] = useState(() => new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10));
   const [to, setTo] = useState(() => now.toISOString().slice(0, 10));
@@ -21,7 +23,7 @@ export default function FleetPnlPage() {
       setRows(await api.getVehiclePnl(from, to));
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     } finally {
       setLoading(false);
     }
@@ -40,11 +42,15 @@ export default function FleetPnlPage() {
   }, [rows]);
 
   return (
-    <AdminShell>
+    <AdminShell searchPlaceholder={t.searchOps}>
       <PageHeader
-        title="Rentabilité flotte"
-        subtitle="P&L réel par véhicule : CA locations, coûts, marge et jours loués."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Pilotage" }, { label: "P&L flotte" }]}
+        title={t.fleetPnl.title}
+        subtitle={t.fleetPnl.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.pilotage },
+          { label: t.nav.fleetPnl },
+        ]}
         actions={
           <div className="flex flex-wrap gap-2">
             <input className="field w-auto" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />

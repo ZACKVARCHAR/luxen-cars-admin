@@ -4,11 +4,13 @@ import { AdminShell } from "@/components/AdminShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AlertBox, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { MaintenanceOrder, Vehicle } from "@/lib/types";
 import { Loader2, Plus } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
 export default function MaintenancePage() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<MaintenanceOrder[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [error, setError] = useState("");
@@ -23,7 +25,7 @@ export default function MaintenancePage() {
       setVehicles(v);
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     }
   }
 
@@ -50,21 +52,25 @@ export default function MaintenancePage() {
       setOpen(false);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <AdminShell>
+    <AdminShell searchPlaceholder={t.searchOps}>
       <PageHeader
-        title="Maintenance"
-        subtitle="Vidanges, révisions, alertes km / dates."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Risques" }, { label: "Maintenance" }]}
+        title={t.maintenance.title}
+        subtitle={t.maintenance.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.risks },
+          { label: t.nav.maintenance },
+        ]}
         actions={
           <button type="button" className="btn-primary" onClick={() => setOpen((v) => !v)}>
-            <Plus className="h-4 w-4" /> Nouvel ordre
+            <Plus className="h-4 w-4" /> {t.new}
           </button>
         }
       />
@@ -154,7 +160,7 @@ export default function MaintenancePage() {
                           await api.completeMaintenance(m.id, { cost: m.cost, releaseVehicle: true });
                           await load();
                         } catch (e) {
-                          setError(e instanceof Error ? e.message : "Erreur");
+                          setError(e instanceof Error ? e.message : t.error);
                         } finally {
                           setBusy("");
                         }
@@ -167,7 +173,7 @@ export default function MaintenancePage() {
               </tr>
             ))}
             {!rows.length && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Aucun ordre.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">{t.maintenance.empty}</td></tr>
             )}
           </tbody>
         </table>

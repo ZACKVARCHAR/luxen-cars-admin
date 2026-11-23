@@ -3,11 +3,13 @@
 import { AdminShell } from "@/components/AdminShell";
 import { AlertBox, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { InsurancePolicy, Vehicle } from "@/lib/types";
 import { Loader2, Plus } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
 export default function InsurancePage() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<InsurancePolicy[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [error, setError] = useState("");
@@ -21,7 +23,7 @@ export default function InsurancePage() {
       setVehicles(v);
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     }
   }
 
@@ -48,21 +50,25 @@ export default function InsurancePage() {
       setOpen(false);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <AdminShell>
+    <AdminShell searchPlaceholder={t.searchOps}>
       <PageHeader
-        title="Assurances"
-        subtitle="Polices, franchises, renouvellements."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Risques" }, { label: "Assurances" }]}
+        title={t.insurance.title}
+        subtitle={t.insurance.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.risks },
+          { label: t.nav.insurance },
+        ]}
         actions={
           <button type="button" className="btn-primary" onClick={() => setOpen((v) => !v)}>
-            <Plus className="h-4 w-4" /> Nouvelle police
+            <Plus className="h-4 w-4" /> {t.new}
           </button>
         }
       />
@@ -134,7 +140,7 @@ export default function InsurancePage() {
               </tr>
             ))}
             {!rows.length && (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Aucune police.</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">{t.insurance.empty}</td></tr>
             )}
           </tbody>
         </table>

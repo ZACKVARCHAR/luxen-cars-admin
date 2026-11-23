@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/AdminShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AlertBox, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { Customer } from "@/lib/types";
 import { Loader2, Plus, X } from "lucide-react";
 import Link from "next/link";
@@ -22,6 +23,7 @@ const SOURCES = [
 ];
 
 export default function CustomersPage() {
+  const { t } = useI18n();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
@@ -34,7 +36,7 @@ export default function CustomersPage() {
       setCustomers(await api.getCustomers());
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     }
   }
 
@@ -73,22 +75,26 @@ export default function CustomersPage() {
       setOpen(false);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Création impossible");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <AdminShell searchPlaceholder="Rechercher un client…" onSearch={setQuery}>
+    <AdminShell searchPlaceholder={t.searchOps} onSearch={setQuery}>
       <PageHeader
-        title="Clients"
-        subtitle="Fiches clients, sources d’acquisition et historique."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Opérations" }, { label: "Clients" }]}
+        title={t.customers.title}
+        subtitle={t.customers.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.operations },
+          { label: t.nav.customers },
+        ]}
         actions={
           <button type="button" className="btn-primary" onClick={() => setOpen((v) => !v)}>
             {open ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            {open ? "Fermer" : "Nouveau client"}
+            {open ? t.close : t.add}
           </button>
         }
       />
@@ -182,7 +188,7 @@ export default function CustomersPage() {
               {!filtered.length && (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                    Aucun client.
+                    {t.customers.empty}
                   </td>
                 </tr>
               )}

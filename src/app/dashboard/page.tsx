@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/AdminShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AlertBox, EmptyState, KpiCard, PageHeader, SectionCard } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import { vehicleImageUrl } from "@/lib/media";
 import type { Dashboard, Vehicle } from "@/lib/types";
 import {
@@ -18,6 +19,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
+  const { t, formatMoney } = useI18n();
   const [data, setData] = useState<Dashboard | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [error, setError] = useState("");
@@ -28,58 +30,58 @@ export default function DashboardPage() {
         setData(dash);
         setVehicles(fleet);
       })
-      .catch((e) => setError(e instanceof Error ? e.message : "Erreur"));
+      .catch((e) => setError(e instanceof Error ? e.message : t.error));
   }, []);
 
   const available = vehicles.filter((v) => v.status === "AVAILABLE");
 
   return (
-    <AdminShell searchPlaceholder="Rechercher véhicule, client, réservation…">
+    <AdminShell searchPlaceholder={t.searchOps}>
       <PageHeader
-        title="Tableau de bord"
-        subtitle="Pilotage opérationnel et trésorerie de l’agence."
-        crumbs={[{ label: "Accueil" }, { label: "Pilotage" }]}
+        title={t.dashboard.title}
+        subtitle={t.dashboard.subtitle}
+        crumbs={[{ label: t.home }, { label: t.dashboard.crumbPilotage }]}
         actions={
           <>
             <Link href="/rentals" className="btn-ghost">
-              <ClipboardList className="h-4 w-4" /> Locations
+              <ClipboardList className="h-4 w-4" /> {t.nav.rentals}
             </Link>
             <Link href="/vehicles" className="btn-primary">
-              <CarFront className="h-4 w-4" /> Flotte
+              <CarFront className="h-4 w-4" /> {t.dashboard.fleet}
             </Link>
           </>
         }
       />
 
-      {error && <AlertBox tone="warn">{error} — démarrez l’API Spring sur :8080.</AlertBox>}
+      {error && <AlertBox tone="warn">{error} — {t.apiDown}</AlertBox>}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           icon={CarFront}
-          label="Véhicules"
+          label={t.dashboard.vehicles}
           value={data?.fleetSize ?? vehicles.length}
-          hint={`${data?.available ?? available.length} disponibles`}
+          hint={`${data?.available ?? available.length} ${t.dashboard.available}`}
           tone="red"
         />
         <KpiCard
           icon={Gauge}
-          label="Taux d’utilisation"
-          value={data ? `${data.utilizationRate}%` : "—"}
-          hint={`${data?.rented ?? 0} en location`}
+          label={t.dashboard.utilization}
+          value={data ? `${data.utilizationRate}%` : t.none}
+          hint={`${data?.rented ?? 0} ${t.dashboard.rented}`}
           tone="orange"
         />
         <KpiCard
           icon={CircleDollarSign}
-          label="Encaissé ce mois"
-          value={data ? `${Number(data.collectedThisMonth).toLocaleString("fr-MA")} MAD` : "—"}
-          hint={`${data?.outstanding ?? 0} MAD restant`}
+          label={t.dashboard.collected}
+          value={data ? formatMoney(data.collectedThisMonth) : t.none}
+          hint={`${data?.outstanding ?? 0} ${t.dashboard.outstanding}`}
           tone="green"
         />
         <KpiCard
           icon={Wrench}
-          label="Indisponibles"
-          value={data?.unavailable ?? "—"}
-          hint={`${data?.pickupsToday ?? 0} départs · ${data?.returnsToday ?? 0} retours`}
+          label={t.dashboard.unavailable}
+          value={data?.unavailable ?? t.none}
+          hint={`${data?.pickupsToday ?? 0} · ${data?.returnsToday ?? 0} (${t.dashboard.pickupsReturns})`}
           tone="slate"
         />
       </div>
@@ -87,23 +89,21 @@ export default function DashboardPage() {
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <KpiCard
           icon={CalendarDays}
-          label="Départs aujourd’hui"
+          label={t.dashboard.pickupsToday}
           value={data?.pickupsToday ?? 0}
           tone="orange"
         />
         <KpiCard
           icon={ClipboardList}
-          label="Locations ouvertes"
+          label={t.dashboard.openRentals}
           value={data?.openRentals ?? 0}
           tone="red"
         />
         <KpiCard
           icon={CircleDollarSign}
-          label="Dépenses du mois"
+          label={t.nav.expenses}
           value={
-            data?.expensesThisMonth != null
-              ? `${Number(data.expensesThisMonth).toLocaleString("fr-MA")} MAD`
-              : "—"
+            data?.expensesThisMonth != null ? formatMoney(data.expensesThisMonth) : t.none
           }
           tone="slate"
         />
@@ -111,10 +111,10 @@ export default function DashboardPage() {
 
       <div className="mt-5 grid gap-4 xl:grid-cols-[1.4fr_0.8fr]">
         <SectionCard
-          title="Véhicules disponibles"
+          title={t.dashboard.availableVehicles}
           action={
             <Link href="/vehicles" className="text-sm font-bold text-[#e10600] hover:underline">
-              Tout voir
+              {t.dashboard.seeAll}
             </Link>
           }
         >
@@ -143,25 +143,25 @@ export default function DashboardPage() {
                     {v.brand} {v.model}
                   </div>
                   <div className="mt-0.5 text-[11px] font-semibold text-gray-500">{v.registration}</div>
-                  <div className="mt-2 text-xs font-extrabold text-[#e10600]">{v.dailyRate} MAD/j</div>
+                  <div className="mt-2 text-xs font-extrabold text-[#e10600]">{formatMoney(v.dailyRate)}/j</div>
                 </div>
               </Link>
             ))}
-            {!available.length && !error && <EmptyState>Aucun véhicule disponible.</EmptyState>}
+            {!available.length && !error && <EmptyState>{t.vehicles.empty}</EmptyState>}
           </div>
         </SectionCard>
 
         <div className="space-y-4">
-          <SectionCard title="État flotte">
+          <SectionCard title={t.dashboard.fleetOverview}>
             <div className="grid grid-cols-2 gap-2 p-3">
-              <MiniStat label="Disponibles" value={data?.available ?? available.length} tone="ok" />
-              <MiniStat label="Réservés" value={data?.reserved} tone="warn" />
-              <MiniStat label="En location" value={data?.rented} tone="info" />
-              <MiniStat label="Maintenance" value={data?.unavailable} tone="bad" />
+              <MiniStat label={t.status.AVAILABLE} value={data?.available ?? available.length} tone="ok" />
+              <MiniStat label={t.status.RESERVED} value={data?.reserved} tone="warn" />
+              <MiniStat label={t.status.RENTED} value={data?.rented} tone="info" />
+              <MiniStat label={t.status.MAINTENANCE} value={data?.unavailable} tone="bad" />
             </div>
           </SectionCard>
 
-          <SectionCard title="Alertes métier">
+          <SectionCard title={t.nav.alerts}>
             <ul className="space-y-2 p-3">
               {(data?.alerts || []).map((a) => (
                 <li key={a.message} className="rounded-[10px] border border-[#e8eaee] bg-[#fafbfc] px-3 py-2.5">
@@ -169,16 +169,16 @@ export default function DashboardPage() {
                   <div className="mt-0.5 text-sm text-gray-700">{a.message}</div>
                 </li>
               ))}
-              {!data?.alerts?.length && <li className="px-1 py-3 text-sm text-gray-500">Aucune alerte.</li>}
+              {!data?.alerts?.length && <li className="px-1 py-3 text-sm text-gray-500">{t.alerts.empty}</li>}
             </ul>
           </SectionCard>
 
-          <SectionCard title="Raccourcis">
+          <SectionCard title={t.dashboard.shortcuts}>
             <div className="grid grid-cols-2 gap-2 p-3">
-              <Quick href="/reservations" label="Réservations" />
-              <Quick href="/payments" label="Paiements" />
-              <Quick href="/maintenance" label="Maintenance" />
-              <Quick href="/finance" label="Simulateur" />
+              <Quick href="/reservations" label={t.nav.reservations} />
+              <Quick href="/payments" label={t.nav.payments} />
+              <Quick href="/maintenance" label={t.nav.maintenance} />
+              <Quick href="/finance" label={t.nav.finance} />
             </div>
           </SectionCard>
         </div>

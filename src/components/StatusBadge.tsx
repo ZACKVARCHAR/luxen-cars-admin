@@ -1,5 +1,7 @@
+"use client";
+
 import { cn } from "@/lib/cn";
-import { statusLabel } from "@/lib/media";
+import { useI18n } from "@/lib/i18n/context";
 
 const TONES: Record<string, string> = {
   AVAILABLE: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -29,6 +31,7 @@ const TONES: Record<string, string> = {
 };
 
 export function StatusBadge({ value }: { value: string }) {
+  const { statusLabel } = useI18n();
   return (
     <span
       className={cn(

@@ -3,6 +3,7 @@
 import { AdminShell } from "@/components/AdminShell";
 import { AlertBox, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { AlertDetail } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -26,6 +27,7 @@ function hrefFor(a: AlertDetail) {
 }
 
 export default function AlertsPage() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<AlertDetail[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -35,7 +37,7 @@ export default function AlertsPage() {
       try {
         setRows(await api.getDashboardAlerts());
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Erreur");
+        setError(e instanceof Error ? e.message : t.error);
       } finally {
         setLoading(false);
       }
@@ -43,16 +45,20 @@ export default function AlertsPage() {
   }, []);
 
   return (
-    <AdminShell>
+    <AdminShell searchPlaceholder={t.searchOps}>
       <PageHeader
-        title="Centre d’alertes"
-        subtitle="Retours en retard, soldes, assurances, CT, incidents, caisse et conflits planning."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Pilotage" }, { label: "Alertes" }]}
+        title={t.alerts.title}
+        subtitle={t.alerts.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.pilotage },
+          { label: t.nav.alerts },
+        ]}
       />
       {error && <AlertBox>{error}</AlertBox>}
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-16 text-sm text-gray-500">
-          <Loader2 className="h-4 w-4 animate-spin" /> Analyse opérationnelle…
+          <Loader2 className="h-4 w-4 animate-spin" /> {t.loading}
         </div>
       ) : (
         <div className="space-y-2">
@@ -70,6 +76,9 @@ export default function AlertsPage() {
               {a.dueDate && <div className="mt-1 text-xs opacity-70">Échéance {a.dueDate}</div>}
             </Link>
           ))}
+          {!rows.length && (
+            <div className="py-12 text-center text-sm text-gray-500">{t.alerts.empty}</div>
+          )}
         </div>
       )}
     </AdminShell>

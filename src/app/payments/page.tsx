@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/AdminShell";
 import { AttachmentList, FileDropzone, type PendingFile } from "@/components/FileDropzone";
 import { AlertBox, KpiCard, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { Customer, Payment, Rental, Reservation, StoredDocument } from "@/lib/types";
 import {
   Banknote,
@@ -35,6 +36,7 @@ const METHOD_LABELS: Record<string, string> = {
 };
 
 export default function PaymentsPage() {
+  const { t, formatMoney } = useI18n();
   const [rows, setRows] = useState<Payment[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rentals, setRentals] = useState<Rental[]>([]);
@@ -66,7 +68,7 @@ export default function PaymentsPage() {
       setReservations(res);
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     }
   }
 
@@ -86,7 +88,7 @@ export default function PaymentsPage() {
         const list = await api.listDocuments("PAYMENT", selectedId);
         if (!cancelled) setDocs(list);
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Erreur documents");
+        if (!cancelled) setError(e instanceof Error ? e.message : t.error);
       } finally {
         if (!cancelled) setDocsLoading(false);
       }
@@ -161,7 +163,7 @@ export default function PaymentsPage() {
       setSelectedId(payment.id);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setSaving(false);
     }
@@ -185,11 +187,15 @@ export default function PaymentsPage() {
   }
 
   return (
-    <AdminShell searchPlaceholder="Référence, banque, client…" onSearch={setQuery}>
+    <AdminShell searchPlaceholder={t.searchOps} onSearch={setQuery}>
       <PageHeader
-        title="Paiements"
-        subtitle="Encaissements, cautions, remboursements et justificatifs."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Trésorerie" }, { label: "Paiements" }]}
+        title={t.payments.title}
+        subtitle={t.payments.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.treasury },
+          { label: t.nav.payments },
+        ]}
         actions={
           <button
             type="button"
@@ -415,7 +421,7 @@ export default function PaymentsPage() {
                 {!filtered.length && (
                   <tr>
                     <td colSpan={6} className="px-4 py-10 text-center text-gray-500">
-                      Aucun paiement trouvé.
+                      {t.payments.empty}
                     </td>
                   </tr>
                 )}

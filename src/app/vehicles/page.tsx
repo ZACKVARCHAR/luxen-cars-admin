@@ -6,7 +6,8 @@ import { VehicleCard } from "@/components/VehicleCard";
 import { AlertBox, EmptyState, KpiCard, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
-import { statusLabel, vehicleImageUrl } from "@/lib/media";
+import { useI18n } from "@/lib/i18n/context";
+import { vehicleImageUrl } from "@/lib/media";
 import type { Vehicle, VehicleStatus } from "@/lib/types";
 import {
   CalendarDays,
@@ -38,6 +39,7 @@ type Tab = "info" | "photos" | "rates" | "availability";
 type StatusFilter = "ALL" | "AVAILABLE" | "RENTED" | "MAINTENANCE";
 
 export default function VehiclesPage() {
+  const { t, formatMoney, statusLabel } = useI18n();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
@@ -60,7 +62,7 @@ export default function VehiclesPage() {
       });
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     }
   }
 
@@ -132,25 +134,26 @@ export default function VehiclesPage() {
       await load();
       setSelectedId(created.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Création impossible");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <AdminShell
-      searchPlaceholder="Rechercher un véhicule (immatriculation, modèle…)"
-      onSearch={setQuery}
-    >
+    <AdminShell searchPlaceholder={t.searchOps} onSearch={setQuery}>
       <PageHeader
-        title="Gestion des véhicules"
-        subtitle="Ajoutez, modifiez et organisez la flotte de vos véhicules."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Opérations" }, { label: "Véhicules" }]}
+        title={t.vehicles.title}
+        subtitle={t.vehicles.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.operations },
+          { label: t.nav.vehicles },
+        ]}
         actions={
           <button type="button" className="btn-primary" onClick={() => setOpen((v) => !v)}>
             <Plus className="h-4 w-4" />
-            Ajouter un véhicule
+            {t.vehicles.add}
           </button>
         }
       />
@@ -246,7 +249,7 @@ export default function VehiclesPage() {
           <div className="sm:col-span-2 lg:col-span-3">
             <button type="submit" className="btn-primary" disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Enregistrer
+              {t.save}
             </button>
           </div>
         </form>
@@ -269,7 +272,7 @@ export default function VehiclesPage() {
               ))}
               {!filtered.length && (
                 <div className="card col-span-full">
-                  <EmptyState>Aucun véhicule pour ce filtre.</EmptyState>
+                  <EmptyState>{t.vehicles.empty}</EmptyState>
                 </div>
               )}
             </div>
@@ -300,7 +303,7 @@ export default function VehiclesPage() {
                     </div>
                   </div>
                   <div className="text-end">
-                    <div className="text-sm font-bold text-[#e10600]">{v.dailyRate} MAD</div>
+                    <div className="text-sm font-bold text-[#e10600]">{formatMoney(v.dailyRate)}</div>
                     <div className="mt-1">
                       <StatusBadge value={v.status} />
                     </div>
@@ -308,7 +311,7 @@ export default function VehiclesPage() {
                 </button>
               ))}
               {!filtered.length && (
-                <div className="px-4 py-10 text-center text-sm text-gray-500">Aucun véhicule.</div>
+                <div className="px-4 py-10 text-center text-sm text-gray-500">{t.vehicles.empty}</div>
               )}
             </div>
           )}
@@ -350,7 +353,7 @@ export default function VehiclesPage() {
                         await api.patchVehicleStatus(selected.id, e.target.value);
                         await load();
                       } catch (err) {
-                        setError(err instanceof Error ? err.message : "Erreur statut");
+                        setError(err instanceof Error ? err.message : t.error);
                       }
                     }}
                   >
@@ -396,7 +399,7 @@ export default function VehiclesPage() {
                     <Info label="Places" value={String(selected.seats)} />
                     <Info label="Bagages" value={String(selected.bags)} />
                     <Info label="Kilométrage" value={`${selected.mileage.toLocaleString("fr-MA")} km`} />
-                    <Info label="Climatisation" value={selected.airConditioning ? "Oui" : "Non"} />
+                    <Info label="Climatisation" value={selected.airConditioning ? t.yes : t.no} />
                     {selected.features && (
                       <div className="sm:col-span-2">
                         <Info
@@ -455,8 +458,8 @@ export default function VehiclesPage() {
 
                 {tab === "rates" && (
                   <div className="space-y-3">
-                    <Info label="Tarif journalier" value={`${selected.dailyRate} MAD`} />
-                    <Info label="Caution" value={`${selected.deposit} MAD`} />
+                    <Info label="Tarif journalier" value={formatMoney(selected.dailyRate)} />
+                    <Info label="Caution" value={formatMoney(selected.deposit)} />
                   </div>
                 )}
 

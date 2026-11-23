@@ -3,19 +3,44 @@
 import { AdminShell } from "@/components/AdminShell";
 import { AlertBox, KpiCard, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { AiConversationItem, AiMessageItem, IntelBrief } from "@/lib/types";
 import { Bot, Loader2, Send, Sparkles } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
-
-const PROMPTS = [
-  { topic: "DEMAND", label: "Voitures demandées", q: "Quelles voitures sont les plus demandées à Fès et lesquelles dois-je acheter ensuite ?" },
-  { topic: "PRICE", label: "Prix & saison", q: "Quels tarifs journaliers recommander pour Sandero et Duster cette semaine face à la concurrence aéroport ?" },
-  { topic: "RISK", label: "Risques métier", q: "Quels risques prioritaires pour mon agence Luxen au Maroc et comment les réduire en 7 jours ?" },
-  { topic: "REVIEW", label: "Avis Google", q: "Comment améliorer ma note Google et répondre aux avis négatifs sur la caution ?" },
-  { topic: "COMPETITION", label: "Concurrence", q: "Comment me différencier des loueurs WhatsApp et des enseignes aéroport à Fès ?" },
-];
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 export default function AdvisorPage() {
+  const { t } = useI18n();
+  const PROMPTS = useMemo(
+    () => [
+      {
+        topic: "DEMAND",
+        label: t.advisor.demand,
+        q: "Quelles voitures sont les plus demandées à Fès et lesquelles dois-je acheter ensuite ?",
+      },
+      {
+        topic: "PRICE",
+        label: t.advisor.price,
+        q: "Quels tarifs journaliers recommander pour Sandero et Duster cette semaine face à la concurrence aéroport ?",
+      },
+      {
+        topic: "RISK",
+        label: t.advisor.risk,
+        q: "Quels risques prioritaires pour mon agence Luxen au Maroc et comment les réduire en 7 jours ?",
+      },
+      {
+        topic: "REVIEW",
+        label: t.advisor.review,
+        q: "Comment améliorer ma note Google et répondre aux avis négatifs sur la caution ?",
+      },
+      {
+        topic: "COMPETITION",
+        label: t.advisor.competition,
+        q: "Comment me différencier des loueurs WhatsApp et des enseignes aéroport à Fès ?",
+      },
+    ],
+    [t],
+  );
+
   const [brief, setBrief] = useState<IntelBrief | null>(null);
   const [conversations, setConversations] = useState<AiConversationItem[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -32,12 +57,13 @@ export default function AdvisorPage() {
       setConversations(c);
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     }
   }
 
   useEffect(() => {
     refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -47,17 +73,17 @@ export default function AdvisorPage() {
     }
     api.getAiMessages(activeId)
       .then(setMessages)
-      .catch((e) => setError(e instanceof Error ? e.message : "Erreur messages"));
-  }, [activeId]);
+      .catch((e) => setError(e instanceof Error ? e.message : t.error));
+  }, [activeId, t.error]);
 
-  async function ask(q: string, t = topic) {
+  async function ask(q: string, tpc = topic) {
     if (!q.trim()) return;
     setBusy(true);
     setError("");
     try {
       const res = await api.askAdvisor({
         conversationId: activeId,
-        topic: t,
+        topic: tpc,
         question: q.trim(),
       });
       setActiveId(res.conversationId);
@@ -65,7 +91,7 @@ export default function AdvisorPage() {
       await refresh();
       setMessages(await api.getAiMessages(res.conversationId));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Conseil impossible");
+      setError(e instanceof Error ? e.message : t.advisor.askFailed);
     } finally {
       setBusy(false);
     }
@@ -77,30 +103,34 @@ export default function AdvisorPage() {
   }
 
   return (
-    <AdminShell searchPlaceholder="Question au conseiller…">
+    <AdminShell searchPlaceholder={t.advisor.placeholder}>
       <PageHeader
-        title="Conseiller IA Luxen"
-        subtitle="Avis Google, Gmail, concurrence Maroc, prix, demande et risques — pour développer le projet."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Intelligence" }, { label: "Conseiller IA" }]}
+        title={t.advisor.title}
+        subtitle={t.advisor.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.advisor.crumbIntel },
+          { label: t.nav.advisor },
+        ]}
       />
       {error && <AlertBox>{error}</AlertBox>}
 
       {brief && (
         <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <KpiCard icon={Sparkles} label="Ville marché" value={brief.city} tone="slate" />
+          <KpiCard icon={Sparkles} label={t.advisor.marketCity} value={brief.city} tone="slate" />
           <KpiCard
             icon={Bot}
-            label="Moyenne avis"
-            value={brief.reviewCount ? `${brief.reviewAvg.toFixed(1)}/5` : "—"}
-            hint={`${brief.reviewCount} avis · ${brief.negativeReviews} négatifs`}
+            label={t.advisor.reviewAvg}
+            value={brief.reviewCount ? `${brief.reviewAvg.toFixed(1)}/5` : t.none}
+            hint={`${brief.reviewCount} · ${brief.negativeReviews} ${t.advisor.negativeReviews}`}
             tone="green"
           />
-          <KpiCard icon={Bot} label="Signaux Gmail HOT" value={brief.hotGmailSignals} tone="orange" />
+          <KpiCard icon={Bot} label={t.advisor.hotGmail} value={brief.hotGmailSignals} tone="orange" />
           <KpiCard
             icon={Bot}
-            label="Moteur IA"
+            label={t.advisor.aiEngine}
             value={brief.geminiEnabled ? "Gemini" : "Local"}
-            hint={brief.geminiEnabled ? "GEMINI_API_KEY actif" : "Fallback métier Maroc"}
+            hint={brief.geminiEnabled ? t.advisor.geminiOn : t.advisor.geminiOff}
             tone={brief.geminiEnabled ? "green" : "red"}
           />
         </div>
@@ -126,7 +156,7 @@ export default function AdvisorPage() {
       <div className="grid gap-5 xl:grid-cols-[0.85fr_1.4fr]">
         <aside className="card p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display font-bold">Conversations</h2>
+            <h2 className="font-display font-bold">{t.advisor.conversations}</h2>
             <button
               type="button"
               className="btn-ghost text-xs"
@@ -135,7 +165,7 @@ export default function AdvisorPage() {
                 setMessages([]);
               }}
             >
-              Nouvelle
+              {t.advisor.newChat}
             </button>
           </div>
           <ul className="space-y-1.5">
@@ -154,7 +184,7 @@ export default function AdvisorPage() {
               </li>
             ))}
             {!conversations.length && (
-              <li className="py-6 text-center text-sm text-gray-500">Aucun échange encore.</li>
+              <li className="py-6 text-center text-sm text-gray-500">{t.advisor.noChat}</li>
             )}
           </ul>
         </aside>
@@ -164,7 +194,7 @@ export default function AdvisorPage() {
             {!messages.length && (
               <div className="flex h-full min-h-[280px] flex-col items-center justify-center text-center text-sm text-gray-500">
                 <Bot className="mb-2 h-8 w-8 text-[#e10600]" />
-                Pose une question ou clique un raccourci (demande, prix, risques, avis, concurrence).
+                {t.advisor.emptyHint}
               </div>
             )}
             {messages.map((m) => (
@@ -183,17 +213,17 @@ export default function AdvisorPage() {
 
           <form onSubmit={onSubmit} className="mt-4 space-y-2 border-t border-[#eee] pt-4">
             <select className="field w-auto text-xs" value={topic} onChange={(e) => setTopic(e.target.value)}>
-              <option value="GENERAL">Général</option>
-              <option value="DEMAND">Demande / flotte</option>
-              <option value="PRICE">Prix</option>
-              <option value="RISK">Risques</option>
-              <option value="REVIEW">Avis Google</option>
-              <option value="COMPETITION">Concurrence</option>
+              <option value="GENERAL">{t.advisor.general}</option>
+              <option value="DEMAND">{t.advisor.topicDemand}</option>
+              <option value="PRICE">{t.advisor.topicPrice}</option>
+              <option value="RISK">{t.advisor.topicRisk}</option>
+              <option value="REVIEW">{t.advisor.topicReview}</option>
+              <option value="COMPETITION">{t.advisor.topicCompetition}</option>
             </select>
             <div className="flex gap-2">
               <input
                 className="field flex-1"
-                placeholder="Ex: Quel modèle acheter avec 120 000 MAD à Fès ?"
+                placeholder={t.advisor.placeholder}
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
               />

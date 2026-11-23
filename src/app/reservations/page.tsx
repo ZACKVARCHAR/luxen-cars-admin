@@ -4,12 +4,14 @@ import { AdminShell } from "@/components/AdminShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AlertBox, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { Reservation } from "@/lib/types";
 import { useEffect, useMemo, useState } from "react";
 
 const STATUSES = ["DRAFT", "PENDING", "CONFIRMED", "CONVERTED_TO_RENTAL", "CANCELLED", "EXPIRED"];
 
 export default function ReservationsPage() {
+  const { t, formatMoney, statusLabel } = useI18n();
   const [rows, setRows] = useState<Reservation[]>([]);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -19,7 +21,7 @@ export default function ReservationsPage() {
       setRows(await api.getReservations());
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     }
   }
 
@@ -36,11 +38,15 @@ export default function ReservationsPage() {
   }, [rows, query]);
 
   return (
-    <AdminShell searchPlaceholder="Rechercher une réservation…" onSearch={setQuery}>
+    <AdminShell searchPlaceholder={t.searchOps} onSearch={setQuery}>
       <PageHeader
-        title="Réservations"
-        subtitle="Demandes web + back-office — codes publics LX-XXXXXXXX."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Opérations" }, { label: "Réservations" }]}
+        title={t.reservations.title}
+        subtitle={t.reservations.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.operations },
+          { label: t.nav.reservations },
+        ]}
       />
       {error && <AlertBox>{error}</AlertBox>}
 
@@ -77,7 +83,7 @@ export default function ReservationsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 font-bold text-[#e10600]">
-                    {Number(r.totalAmount).toLocaleString("fr-MA")} MAD
+                    {formatMoney(r.totalAmount)}
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-600">
                     {r.paymentMethod || "—"}
@@ -98,14 +104,14 @@ export default function ReservationsPage() {
                           await api.patchReservationStatus(r.id, next);
                           await load();
                         } catch (err) {
-                          setError(err instanceof Error ? err.message : "Erreur statut");
+                          setError(err instanceof Error ? err.message : t.error);
                           e.target.value = r.status;
                         }
                       }}
                     >
                       {STATUSES.map((s) => (
                         <option key={s} value={s}>
-                          {s}
+                          {statusLabel(s)}
                         </option>
                       ))}
                     </select>
@@ -115,7 +121,7 @@ export default function ReservationsPage() {
               {!filtered.length && (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                    Aucune réservation.
+                    {t.reservations.empty}
                   </td>
                 </tr>
               )}

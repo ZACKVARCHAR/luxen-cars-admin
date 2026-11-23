@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/AdminShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AlertBox, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { Customer, Rental, Reservation, Vehicle } from "@/lib/types";
 import { Loader2, X } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -11,6 +12,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 const FUEL_OPTIONS = ["Vide", "1/4", "1/2", "3/4", "Plein"];
 
 export default function RentalsPage() {
+  const { t, formatMoney, statusLabel } = useI18n();
   const [rentals, setRentals] = useState<Rental[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -34,7 +36,7 @@ export default function RentalsPage() {
       setVehicles(v);
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     }
   }
 
@@ -76,7 +78,7 @@ export default function RentalsPage() {
       setOpenId(null);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setBusy("");
     }
@@ -103,18 +105,22 @@ export default function RentalsPage() {
       setCloseId(null);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setBusy("");
     }
   }
 
   return (
-    <AdminShell searchPlaceholder="Rechercher une location…">
+    <AdminShell searchPlaceholder={t.searchOps}>
       <PageHeader
-        title="Locations"
-        subtitle="Conversion réservation → contrat, inspection départ/retour, caution."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Opérations" }, { label: "Locations" }]}
+        title={t.rentals.title}
+        subtitle={t.rentals.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.operations },
+          { label: t.nav.rentals },
+        ]}
       />
       {error && <AlertBox>{error}</AlertBox>}
 
@@ -136,7 +142,7 @@ export default function RentalsPage() {
                 </div>
                 <div className="text-xs text-gray-500">
                   {new Date(r.startAt).toLocaleString("fr-MA")} → {new Date(r.endAt).toLocaleString("fr-MA")} ·{" "}
-                  {Number(r.totalAmount).toLocaleString("fr-MA")} MAD
+                  {formatMoney(r.totalAmount)}
                 </div>
               </div>
               <button type="button" className="btn-primary text-sm" onClick={() => setOpenId(r.id)}>
@@ -236,10 +242,10 @@ export default function RentalsPage() {
             <label className="block">
               <span className="mb-1 block text-xs font-bold uppercase text-gray-500">Caution</span>
               <select className="field" name="depositStatus" defaultValue="RELEASED">
-                <option value="RELEASED">Restituée</option>
-                <option value="HELD">Conservée</option>
-                <option value="PARTIALLY_RETAINED">Retenue partielle</option>
-                <option value="FULLY_RETAINED">Retenue totale</option>
+                <option value="RELEASED">{statusLabel("RELEASED")}</option>
+                <option value="HELD">{statusLabel("HELD")}</option>
+                <option value="PARTIALLY_RETAINED">{statusLabel("PARTIALLY_RETAINED")}</option>
+                <option value="FULLY_RETAINED">{statusLabel("FULLY_RETAINED")}</option>
               </select>
             </label>
             <Field name="inspector" label="Inspecteur" defaultValue="Agent Luxen" required />
@@ -289,11 +295,11 @@ export default function RentalsPage() {
                     {new Date(r.endAt).toLocaleString("fr-MA")}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="font-bold text-[#e10600]">{Number(r.totalAmount).toLocaleString("fr-MA")} MAD</div>
-                    <div className="text-xs text-gray-500">Solde {Number(r.balance).toLocaleString("fr-MA")}</div>
+                    <div className="font-bold text-[#e10600]">{formatMoney(r.totalAmount)}</div>
+                    <div className="text-xs text-gray-500">{formatMoney(r.balance)}</div>
                   </td>
                   <td className="px-4 py-3 text-xs">
-                    {Number(r.depositAmount).toLocaleString("fr-MA")} · <StatusBadge value={r.depositStatus} />
+                    {formatMoney(r.depositAmount)} · <StatusBadge value={r.depositStatus} />
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge value={r.status} />
@@ -310,7 +316,7 @@ export default function RentalsPage() {
               {!rentals.length && (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                    Aucune location.
+                    {t.rentals.empty}
                   </td>
                 </tr>
               )}

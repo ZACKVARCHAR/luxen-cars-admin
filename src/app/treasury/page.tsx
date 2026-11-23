@@ -3,11 +3,13 @@
 import { AdminShell } from "@/components/AdminShell";
 import { AlertBox, KpiCard, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { TreasuryDay } from "@/lib/types";
 import { Banknote, CreditCard, Loader2, Lock, Wallet } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
 export default function TreasuryPage() {
+  const { t, formatMoney } = useI18n();
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [day, setDay] = useState<TreasuryDay | null>(null);
   const [error, setError] = useState("");
@@ -18,7 +20,7 @@ export default function TreasuryPage() {
       setDay(await api.getTreasuryDay(d));
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     }
   }
 
@@ -33,7 +35,7 @@ export default function TreasuryPage() {
       await api.openTreasuryClose(date);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     } finally {
       setSaving(false);
     }
@@ -52,18 +54,22 @@ export default function TreasuryPage() {
       });
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <AdminShell>
+    <AdminShell searchPlaceholder={t.searchOps}>
       <PageHeader
-        title="Caisse journalière"
-        subtitle="Réconciliation espèces / carte / virement et clôture de journée."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Trésorerie" }, { label: "Caisse" }]}
+        title={t.treasury.title}
+        subtitle={t.treasury.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.treasury },
+          { label: t.nav.treasuryPage },
+        ]}
         actions={
           <input
             className="field w-auto"

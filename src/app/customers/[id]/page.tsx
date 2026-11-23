@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/AdminShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AlertBox, KpiCard, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { Customer360 } from "@/lib/types";
 import { Loader2, TriangleAlert, Wallet } from "lucide-react";
 import Link from "next/link";
@@ -11,6 +12,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Customer360Page() {
+  const { t, formatMoney } = useI18n();
   const params = useParams<{ id: string }>();
   const [data, setData] = useState<Customer360 | null>(null);
   const [error, setError] = useState("");
@@ -21,7 +23,7 @@ export default function Customer360Page() {
       try {
         setData(await api.getCustomer360(params.id));
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Erreur");
+        setError(e instanceof Error ? e.message : t.error);
       }
     })();
   }, [params.id]);
@@ -29,14 +31,14 @@ export default function Customer360Page() {
   const c = data?.customer;
 
   return (
-    <AdminShell>
+    <AdminShell searchPlaceholder={t.searchOps}>
       <PageHeader
-        title={c ? `${c.firstName} ${c.lastName}` : "Fiche client 360"}
-        subtitle="Historique complet · soldes · risque · timeline métier."
+        title={c ? `${c.firstName} ${c.lastName}` : t.customers.profile}
+        subtitle={t.customers.subtitle}
         crumbs={[
-          { label: "Accueil", href: "/dashboard" },
-          { label: "Clients", href: "/customers" },
-          { label: c ? `${c.firstName} ${c.lastName}` : "360" },
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.customers, href: "/customers" },
+          { label: c ? `${c.firstName} ${c.lastName}` : t.customers.profile },
         ]}
         actions={
           <Link href="/customers" className="btn-ghost">
@@ -47,22 +49,22 @@ export default function Customer360Page() {
       {error && <AlertBox>{error}</AlertBox>}
       {!data ? (
         <div className="flex items-center justify-center gap-2 py-16 text-sm text-gray-500">
-          <Loader2 className="h-4 w-4 animate-spin" /> Chargement profil…
+          <Loader2 className="h-4 w-4 animate-spin" /> {t.loading}
         </div>
       ) : (
         <>
           <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <KpiCard icon={Wallet} label="CA lifetime" value={`${Number(data.lifetimeRevenue).toLocaleString("fr-MA")} MAD`} tone="green" />
+            <KpiCard icon={Wallet} label="CA lifetime" value={formatMoney(data.lifetimeRevenue)} tone="green" />
             <KpiCard
               icon={Wallet}
-              label="Solde locations"
-              value={`${Number(data.openRentalBalance).toLocaleString("fr-MA")} MAD`}
+              label={t.nav.rentals}
+              value={formatMoney(data.openRentalBalance)}
               tone="orange"
             />
             <KpiCard
               icon={Wallet}
-              label="Solde réservations"
-              value={`${Number(data.openReservationBalance).toLocaleString("fr-MA")} MAD`}
+              label={t.nav.reservations}
+              value={formatMoney(data.openReservationBalance)}
               tone="slate"
             />
             <KpiCard
@@ -83,25 +85,25 @@ export default function Customer360Page() {
               <Row label="Source" value={c!.source} />
               <Row label="CIN / ID" value={c!.idDocument || "—"} />
               <Row label="Permis" value={c!.driverLicense || "—"} />
-              <Row label="Blacklist" value={c!.blacklist ? "Oui" : "Non"} />
+              <Row label="Blacklist" value={c!.blacklist ? t.yes : t.no} />
               <Row label="Notes" value={c!.notes || "—"} />
             </div>
 
             <div className="card p-5">
               <h2 className="mb-3 font-display text-lg font-bold">Timeline</h2>
               <ol className="space-y-3">
-                {data.timeline.map((t) => (
-                  <li key={`${t.type}-${t.id}`} className="rounded-[10px] border border-[#e8eaee] bg-[#fafbfc] px-3 py-2">
+                {data.timeline.map((ev) => (
+                  <li key={`${ev.type}-${ev.id}`} className="rounded-[10px] border border-[#e8eaee] bg-[#fafbfc] px-3 py-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <StatusBadge value={t.type} />
+                      <StatusBadge value={ev.type} />
                       <span className="text-[11px] text-gray-500">
-                        {t.at ? new Date(t.at).toLocaleString("fr-MA") : "—"}
+                        {ev.at ? new Date(ev.at).toLocaleString("fr-MA") : t.none}
                       </span>
                     </div>
-                    <div className="mt-1 text-sm font-semibold">{t.label}</div>
+                    <div className="mt-1 text-sm font-semibold">{ev.label}</div>
                     <div className="text-xs text-gray-500">
-                      {t.status}
-                      {t.amount != null ? ` · ${Number(t.amount).toLocaleString("fr-MA")} MAD` : ""}
+                      {ev.status}
+                      {ev.amount != null ? ` · ${formatMoney(ev.amount)}` : ""}
                     </div>
                   </li>
                 ))}

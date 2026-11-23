@@ -4,11 +4,13 @@ import { AdminShell } from "@/components/AdminShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AlertBox, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 import type { Incident, Vehicle } from "@/lib/types";
 import { Loader2, Plus } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
 export default function IncidentsPage() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<Incident[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [error, setError] = useState("");
@@ -23,7 +25,7 @@ export default function IncidentsPage() {
       setVehicles(v);
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : t.error);
     }
   }
 
@@ -48,21 +50,25 @@ export default function IncidentsPage() {
       setOpen(false);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <AdminShell>
+    <AdminShell searchPlaceholder={t.searchOps}>
       <PageHeader
-        title="Incidents"
-        subtitle="Accidents, sinistres, immobilisations."
-        crumbs={[{ label: "Accueil", href: "/dashboard" }, { label: "Risques" }, { label: "Incidents" }]}
+        title={t.incidents.title}
+        subtitle={t.incidents.subtitle}
+        crumbs={[
+          { label: t.home, href: "/dashboard" },
+          { label: t.nav.risks },
+          { label: t.nav.incidents },
+        ]}
         actions={
           <button type="button" className="btn-primary" onClick={() => setOpen((v) => !v)}>
-            <Plus className="h-4 w-4" /> Déclarer
+            <Plus className="h-4 w-4" /> {t.add}
           </button>
         }
       />
@@ -145,7 +151,7 @@ export default function IncidentsPage() {
                           await api.closeIncident(i.id);
                           await load();
                         } catch (e) {
-                          setError(e instanceof Error ? e.message : "Erreur");
+                          setError(e instanceof Error ? e.message : t.error);
                         } finally {
                           setBusy("");
                         }
@@ -158,7 +164,7 @@ export default function IncidentsPage() {
               </tr>
             ))}
             {!rows.length && (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Aucun incident.</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">{t.incidents.empty}</td></tr>
             )}
           </tbody>
         </table>
